@@ -1,1 +1,2 @@
-export { SSVScannerCommand } from './commands/SSVScannerCommand';
+export { ClusterScanner } from './lib/ClusterScanner/ClusterScanner';
+export { NonceScanner } from './lib/NonceScanner/NonceScanner';

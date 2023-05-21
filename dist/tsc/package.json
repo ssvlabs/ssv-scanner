@@ -1,7 +1,7 @@
 {
-    "name": "ssv-cluster-scanner",
-    "version": "0.1.6",
-    "description": "Library to retrieve cluster snapshots from the ssv.network contract.",
+    "name": "ssv-scanner",
+    "version": "0.0.1",
+    "description": "Library to retrieve cluster snapshots and owner nonce from the ssv.network contract.",
     "author": "SSV.Network",
     "repository": "https://github.com/bloxapp/cluster-scanner",
     "license": "MIT",
@@ -9,6 +9,7 @@
         "ssv",
         "ssv.network",
         "cluster",
+        "nonce",
         "scanner"
     ],
     "main": "./dist/tsc/src/main.js",

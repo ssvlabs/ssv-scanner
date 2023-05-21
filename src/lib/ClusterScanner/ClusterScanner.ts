@@ -1,24 +1,14 @@
 import cliProgress from 'cli-progress';
-import Web3Provider from '../lib/web3.provider';
+import Web3Provider from '../web3.provider';
 
-export interface SSVScannerParams {
-  nodeUrl: string,
-  ownerAddress: string,
-  contractAddress: string,
-  operatorIds: number[],
-}
+import { BaseScanner } from '../BaseScanner';
 
 export interface IData {
   payload: any;
   cluster: any;
 }
 
-export class SSVScannerCommand {
-  protected DAY = 5400;
-  protected WEEK = this.DAY * 7;
-  protected MONTH = this.DAY * 30;
-  protected progressBar: any;
-
+export class ClusterScanner extends BaseScanner {
   protected eventsList = [
     'ClusterDeposited',
     'ClusterWithdrawn',
@@ -28,54 +18,24 @@ export class SSVScannerCommand {
     'ClusterReactivated',
   ]
 
-  private params: SSVScannerParams;
-
-  constructor(scannerParams: SSVScannerParams) {
-    if (!scannerParams.contractAddress) {
-      throw Error('Contract address is required');
-    }
-    if (!scannerParams.nodeUrl) {
-      throw Error('ETH1 node is required');
-    }
-    const validOperatorIds = Array.isArray(scannerParams.operatorIds) && this.isValidOperatorIds(scannerParams.operatorIds.length);
+  async run(operatorIds: number[], cli?: boolean): Promise<IData> {
+    const validOperatorIds = Array.isArray(operatorIds) && this._isValidOperatorIds(operatorIds.length);
     if (!validOperatorIds) {
       throw Error('Comma-separated list of operator IDs. The amount must be 3f+1 compatible.');
     }
-    if (!scannerParams.ownerAddress) {
-      throw Error('Cluster owner address is required');
-    }
-    if (scannerParams.contractAddress.length !== 42) {
-      throw Error('Invalid contract address length.');
-    }
-    if (!scannerParams.contractAddress.startsWith('0x')) {
-      throw Error('Invalid contract address.');
-    }
-    if (scannerParams.ownerAddress.length !== 42) {
-      throw Error('Invalid owner address length.');
-    }
-    if (!scannerParams.ownerAddress.startsWith('0x')) {
-      throw Error('Invalid owner address.');
-    }
-    this.params = scannerParams;
-    // convert to checksum addresses
-    this.params.contractAddress = Web3Provider.web3().utils.toChecksumAddress(this.params.contractAddress);
-    this.params.ownerAddress = Web3Provider.web3().utils.toChecksumAddress(this.params.ownerAddress);
-    this.params.operatorIds = [...this.params.operatorIds].sort((a: number, b: number) => a - b);
-  }
 
-  async scan(): Promise<IData> {
-    return this.getClusterSnapshot(false);
-  }
+    operatorIds = [...operatorIds].sort((a: number, b: number) => a - b);
 
-  async execute(): Promise<IData> {
-    console.log('\nScanning blockchain...');
-    this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-    const data: IData = await this.getClusterSnapshot(true);
-    this.progressBar.stop();
+    if (cli) {
+      console.log('\nScanning blockchain...');
+      this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);  
+    }
+    const data: IData = await this._getClusterSnapshot(operatorIds, cli);
+    cli && this.progressBar.stop();
     return data;
   }
 
-  async getClusterSnapshot(cli: boolean): Promise<IData> {
+  private async _getClusterSnapshot(operatorIds: number[], cli?: boolean): Promise<IData> {
     let latestBlockNumber;
     try {
       latestBlockNumber = await Web3Provider.web3(this.params.nodeUrl).eth.getBlockNumber();
@@ -86,6 +46,7 @@ export class SSVScannerCommand {
       await Web3Provider.contract(this.params.nodeUrl, this.params.contractAddress).methods.owner().call();
       // HERE we can validate the contract owner address
     } catch (err) {
+      console.log("eee", err);
       throw new Error('Could not find any cluster snapshot from the provided contract address.');
     }
     let step = this.MONTH;
@@ -106,7 +67,7 @@ export class SSVScannerCommand {
         result = await Web3Provider.contract(this.params.nodeUrl, this.params.contractAddress).getPastEvents('allEvents', filters);
         result
           .filter((item: any) => this.eventsList.includes(item.event))
-          .filter((item: any) => JSON.stringify(item.returnValues.operatorIds.map((value: any) => +value)) === JSON.stringify(this.params.operatorIds))
+          .filter((item: any) => JSON.stringify(item.returnValues.operatorIds.map((value: any) => +value)) === JSON.stringify(operatorIds))
           .forEach((item: any) => {
             if (item.blockNumber > biggestBlockNumber) {
               biggestBlockNumber = item.blockNumber;
@@ -131,7 +92,7 @@ export class SSVScannerCommand {
     return {
       payload: {
         'Owner': this.params.ownerAddress,
-        'Operators': this.params.operatorIds.sort((a: number, b: number) => a - b).join(','),
+        'Operators': operatorIds.sort((a: number, b: number) => a - b).join(','),
         'Block': biggestBlockNumber || latestBlockNumber,
         'Data': clusterSnapshot.join(','),
       },
@@ -145,7 +106,7 @@ export class SSVScannerCommand {
     };
   }
 
-  private isValidOperatorIds(operatorsLength: number) {
+  private _isValidOperatorIds(operatorsLength: number) {
     return (operatorsLength < 4 || operatorsLength > 13 || operatorsLength % 3 != 1) ? false : true;
   }
 }

@@ -1,14 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SSVScannerCommand = void 0;
+exports.ClusterScanner = void 0;
 const tslib_1 = require("tslib");
 const cli_progress_1 = tslib_1.__importDefault(require("cli-progress"));
-const web3_provider_1 = tslib_1.__importDefault(require("../lib/web3.provider"));
-class SSVScannerCommand {
-    constructor(scannerParams) {
-        this.DAY = 5400;
-        this.WEEK = this.DAY * 7;
-        this.MONTH = this.DAY * 30;
+const web3_provider_1 = tslib_1.__importDefault(require("../web3.provider"));
+const BaseScanner_1 = require("../BaseScanner");
+class ClusterScanner extends BaseScanner_1.BaseScanner {
+    constructor() {
+        super(...arguments);
         this.eventsList = [
             'ClusterDeposited',
             'ClusterWithdrawn',
@@ -17,52 +16,24 @@ class SSVScannerCommand {
             'ClusterLiquidated',
             'ClusterReactivated',
         ];
-        if (!scannerParams.contractAddress) {
-            throw Error('Contract address is required');
-        }
-        if (!scannerParams.nodeUrl) {
-            throw Error('ETH1 node is required');
-        }
-        const validOperatorIds = Array.isArray(scannerParams.operatorIds) && this.isValidOperatorIds(scannerParams.operatorIds.length);
-        if (!validOperatorIds) {
-            throw Error('Comma-separated list of operator IDs. The amount must be 3f+1 compatible.');
-        }
-        if (!scannerParams.ownerAddress) {
-            throw Error('Cluster owner address is required');
-        }
-        if (scannerParams.contractAddress.length !== 42) {
-            throw Error('Invalid contract address length.');
-        }
-        if (!scannerParams.contractAddress.startsWith('0x')) {
-            throw Error('Invalid contract address.');
-        }
-        if (scannerParams.ownerAddress.length !== 42) {
-            throw Error('Invalid owner address length.');
-        }
-        if (!scannerParams.ownerAddress.startsWith('0x')) {
-            throw Error('Invalid owner address.');
-        }
-        this.params = scannerParams;
-        // convert to checksum addresses
-        this.params.contractAddress = web3_provider_1.default.web3().utils.toChecksumAddress(this.params.contractAddress);
-        this.params.ownerAddress = web3_provider_1.default.web3().utils.toChecksumAddress(this.params.ownerAddress);
-        this.params.operatorIds = [...this.params.operatorIds].sort((a, b) => a - b);
     }
-    scan() {
+    run(operatorIds, cli) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.getClusterSnapshot(false);
-        });
-    }
-    execute() {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            console.log('\nScanning blockchain...');
-            this.progressBar = new cli_progress_1.default.SingleBar({}, cli_progress_1.default.Presets.shades_classic);
-            const data = yield this.getClusterSnapshot(true);
-            this.progressBar.stop();
+            const validOperatorIds = Array.isArray(operatorIds) && this._isValidOperatorIds(operatorIds.length);
+            if (!validOperatorIds) {
+                throw Error('Comma-separated list of operator IDs. The amount must be 3f+1 compatible.');
+            }
+            operatorIds = [...operatorIds].sort((a, b) => a - b);
+            if (cli) {
+                console.log('\nScanning blockchain...');
+                this.progressBar = new cli_progress_1.default.SingleBar({}, cli_progress_1.default.Presets.shades_classic);
+            }
+            const data = yield this._getClusterSnapshot(operatorIds, cli);
+            cli && this.progressBar.stop();
             return data;
         });
     }
-    getClusterSnapshot(cli) {
+    _getClusterSnapshot(operatorIds, cli) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             let latestBlockNumber;
             try {
@@ -76,6 +47,7 @@ class SSVScannerCommand {
                 // HERE we can validate the contract owner address
             }
             catch (err) {
+                console.log("eee", err);
                 throw new Error('Could not find any cluster snapshot from the provided contract address.');
             }
             let step = this.MONTH;
@@ -94,7 +66,7 @@ class SSVScannerCommand {
                     result = yield web3_provider_1.default.contract(this.params.nodeUrl, this.params.contractAddress).getPastEvents('allEvents', filters);
                     result
                         .filter((item) => this.eventsList.includes(item.event))
-                        .filter((item) => JSON.stringify(item.returnValues.operatorIds.map((value) => +value)) === JSON.stringify(this.params.operatorIds))
+                        .filter((item) => JSON.stringify(item.returnValues.operatorIds.map((value) => +value)) === JSON.stringify(operatorIds))
                         .forEach((item) => {
                         if (item.blockNumber > biggestBlockNumber) {
                             biggestBlockNumber = item.blockNumber;
@@ -120,7 +92,7 @@ class SSVScannerCommand {
             return {
                 payload: {
                     'Owner': this.params.ownerAddress,
-                    'Operators': this.params.operatorIds.sort((a, b) => a - b).join(','),
+                    'Operators': operatorIds.sort((a, b) => a - b).join(','),
                     'Block': biggestBlockNumber || latestBlockNumber,
                     'Data': clusterSnapshot.join(','),
                 },
@@ -134,9 +106,9 @@ class SSVScannerCommand {
             };
         });
     }
-    isValidOperatorIds(operatorsLength) {
+    _isValidOperatorIds(operatorsLength) {
         return (operatorsLength < 4 || operatorsLength > 13 || operatorsLength % 3 != 1) ? false : true;
     }
 }
-exports.SSVScannerCommand = SSVScannerCommand;
-//# sourceMappingURL=SSVScannerCommand.js.map
+exports.ClusterScanner = ClusterScanner;
+//# sourceMappingURL=ClusterScanner.js.map
