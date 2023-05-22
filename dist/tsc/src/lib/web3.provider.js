@@ -13,6 +13,12 @@ class Web3Provider {
     static contract(nodeUrl, contractAddress) {
         return new (Web3Provider.web3(nodeUrl)).eth.Contract(Web3Provider.abi, contractAddress);
     }
+    static getGenesisBlock(nodeUrl, contractAddress) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const [fistEvent] = yield Web3Provider.contract(nodeUrl, contractAddress).getPastEvents('Initialized', { fromBlock: 0 });
+            return (fistEvent === null || fistEvent === void 0 ? void 0 : fistEvent.blockNumber) || 0;
+        });
+    }
 }
 exports.default = Web3Provider;
 Web3Provider.BLOCK_RANGE_500K = 500000;

@@ -34,9 +34,10 @@ class NonceScanner extends BaseScanner_1.BaseScanner {
             }
             let step = this.MONTH;
             let latestNonce = 0;
+            const genesisBlock = yield web3_provider_1.default.getGenesisBlock(this.params.nodeUrl, this.params.contractAddress);
             const ownerTopic = web3_provider_1.default.web3().eth.abi.encodeParameter('address', this.params.ownerAddress);
             const filters = {
-                fromBlock: 0,
+                fromBlock: genesisBlock,
                 toBlock: latestBlockNumber,
                 topics: [null, ownerTopic],
             };
@@ -61,7 +62,7 @@ class NonceScanner extends BaseScanner_1.BaseScanner {
                 cli && this.progressBar.update(filters.toBlock);
             } while (filters.toBlock - filters.fromBlock > 0);
             cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
-            return latestNonce + 1;
+            return latestNonce;
         });
     }
 }

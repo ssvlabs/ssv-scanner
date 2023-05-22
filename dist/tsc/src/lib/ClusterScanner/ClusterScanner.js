@@ -53,14 +53,15 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
             let step = this.MONTH;
             let clusterSnapshot;
             let biggestBlockNumber = 0;
+            const genesisBlock = yield web3_provider_1.default.getGenesisBlock(this.params.nodeUrl, this.params.contractAddress);
             const ownerTopic = web3_provider_1.default.web3().eth.abi.encodeParameter('address', this.params.ownerAddress);
             const filters = {
-                fromBlock: latestBlockNumber - step,
+                fromBlock: latestBlockNumber - step > genesisBlock ? latestBlockNumber - step : genesisBlock,
                 toBlock: latestBlockNumber,
                 topics: [null, ownerTopic],
             };
             cli && this.progressBar.start(latestBlockNumber, 0);
-            while (!clusterSnapshot && filters.fromBlock > 0) {
+            while (!clusterSnapshot && filters.fromBlock >= genesisBlock) {
                 let result;
                 try {
                     result = yield web3_provider_1.default.contract(this.params.nodeUrl, this.params.contractAddress).getPastEvents('allEvents', filters);
@@ -88,7 +89,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 cli && this.progressBar.update(latestBlockNumber - (filters.toBlock - step));
             }
             cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
-            clusterSnapshot = clusterSnapshot || ['0', '0', '0', '0', true];
+            clusterSnapshot = clusterSnapshot || ['0', '0', '0', true, '0'];
             return {
                 payload: {
                     'Owner': this.params.ownerAddress,
@@ -100,8 +101,8 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                     validatorCount: clusterSnapshot[0],
                     networkFeeIndex: clusterSnapshot[1],
                     index: clusterSnapshot[2],
-                    balance: clusterSnapshot[3],
-                    active: clusterSnapshot[4],
+                    balance: clusterSnapshot[4],
+                    active: clusterSnapshot[3],
                 }
             };
         });
