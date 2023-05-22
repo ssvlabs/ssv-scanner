@@ -1,4 +1,4 @@
-import { SSVScannerCommand } from '../src/main';
+import { ClusterScanner, NonceScanner } from 'ssv-scanner';
 
 async function main() {
   const params = {
@@ -7,13 +7,18 @@ async function main() {
     ownerAddress: '',
     operatorIds: [],
   }
-  const command = new SSVScannerCommand(params);
-  const result = await command.scan()
+
+  const clusterScanner = new ClusterScanner(params);
+  const result = await clusterScanner.run(params.operatorIds);
   console.log(JSON.stringify({
-    "block": result.payload.Block,
-    "cluster snapshot": result.cluster,
-    "cluster": Object.values(result.cluster)
+    'block': result.payload.Block,
+    'cluster snapshot': result.cluster,
+    'cluster': Object.values(result.cluster)
   }, null, '  '));
+
+  const nonceScanner = new NonceScanner(params);
+  const currentNonce = await nonceScanner.run();
+  console.log('Current nonce:', currentNonce);
 }
 
 void main();

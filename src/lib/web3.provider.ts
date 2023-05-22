@@ -18,4 +18,9 @@ export default class Web3Provider {
       contractAddress,
     );
   }
+
+  static async getGenesisBlock(nodeUrl: string, contractAddress: string) {
+    const [ fistEvent ] = await Web3Provider.contract(nodeUrl, contractAddress).getPastEvents('Initialized', { fromBlock: 0 });
+    return fistEvent?.blockNumber || 0;
+  }
 }
