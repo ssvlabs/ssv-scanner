@@ -101,8 +101,8 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                     validatorCount: clusterSnapshot[0],
                     networkFeeIndex: clusterSnapshot[1],
                     index: clusterSnapshot[2],
-                    balance: clusterSnapshot[4],
                     active: clusterSnapshot[3],
+                    balance: clusterSnapshot[4],
                 }
             };
         });
