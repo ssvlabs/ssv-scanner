@@ -53,15 +53,16 @@ export class ClusterScanner extends BaseScanner {
     let clusterSnapshot;
     let biggestBlockNumber = 0;
 
+    const genesisBlock = await Web3Provider.getGenesisBlock(this.params.nodeUrl, this.params.contractAddress);
     const ownerTopic = Web3Provider.web3().eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
-      fromBlock: latestBlockNumber - step,
+      fromBlock: latestBlockNumber - step > genesisBlock ? latestBlockNumber - step : genesisBlock,
       toBlock: latestBlockNumber,
       topics: [null, ownerTopic],
     };
 
     cli && this.progressBar.start(latestBlockNumber, 0);
-    while (!clusterSnapshot && filters.fromBlock > 0) {
+    while (!clusterSnapshot && filters.fromBlock >= genesisBlock) {
       let result: any;
       try {
         result = await Web3Provider.contract(this.params.nodeUrl, this.params.contractAddress).getPastEvents('allEvents', filters);
@@ -88,7 +89,7 @@ export class ClusterScanner extends BaseScanner {
     }
     cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
 
-    clusterSnapshot = clusterSnapshot || ['0', '0', '0', '0', true];
+    clusterSnapshot = clusterSnapshot || ['0', '0', '0', true, '0'];
     return {
       payload: {
         'Owner': this.params.ownerAddress,
@@ -100,8 +101,8 @@ export class ClusterScanner extends BaseScanner {
         validatorCount: clusterSnapshot[0],
         networkFeeIndex: clusterSnapshot[1],
         index: clusterSnapshot[2],
-        balance: clusterSnapshot[3],
-        active: clusterSnapshot[4],
+        balance: clusterSnapshot[4],
+        active: clusterSnapshot[3],
       }
     };
   }

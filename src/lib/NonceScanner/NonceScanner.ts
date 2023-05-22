@@ -30,9 +30,10 @@ export class NonceScanner extends BaseScanner {
     let step = this.MONTH;
     let latestNonce = 0;
 
+    const genesisBlock = await Web3Provider.getGenesisBlock(this.params.nodeUrl, this.params.contractAddress);
     const ownerTopic = Web3Provider.web3().eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
-      fromBlock: 0,
+      fromBlock: genesisBlock,
       toBlock: latestBlockNumber,
       topics: [null, ownerTopic],
     };
@@ -58,6 +59,6 @@ export class NonceScanner extends BaseScanner {
 
     cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
 
-    return latestNonce + 1;
+    return latestNonce;
   }
 }
