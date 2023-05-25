@@ -46,7 +46,6 @@ export class NonceScanner extends BaseScanner {
       toBlock: latestBlockNumber,
       topics: [null, ownerTopic],
     };
-    console.log("latestBlockNumber", latestBlockNumber);
 
     cli && this.progressBar.start(latestBlockNumber, 0);
     do {
