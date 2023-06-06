@@ -56,7 +56,7 @@ export class ClusterScanner extends BaseScanner {
     const genesisBlock = await Web3Provider.getGenesisBlock(this.params.nodeUrl, this.params.contractAddress);
     const ownerTopic = Web3Provider.web3().eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
-      fromBlock: latestBlockNumber - step > genesisBlock ? latestBlockNumber - step : genesisBlock,
+      fromBlock: Math.max(latestBlockNumber - step, genesisBlock),
       toBlock: latestBlockNumber,
       topics: [null, ownerTopic],
     };
