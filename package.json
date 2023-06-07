@@ -1,6 +1,6 @@
 {
   "name": "ssv-scanner",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "Library to retrieve cluster snapshots and owner nonce from the ssv.network contract.",
   "author": "SSV.Network",
   "repository": "https://github.com/bloxapp/ssv-scanner",
