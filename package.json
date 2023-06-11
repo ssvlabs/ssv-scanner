@@ -1,7 +1,7 @@
 {
   "name": "ssv-scanner",
   "version": "1.0.0",
-  "description": "Tool for retrieving events data (cluster snapshots and registration nonce) from the SSV network contract.",
+  "description": "Tool for retrieving events data (cluster snapshots and owner nonce) from the SSV network contract.",
   "author": "SSV.Network",
   "repository": "https://github.com/bloxapp/ssv-scanner",
   "license": "MIT",
