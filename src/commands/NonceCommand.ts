@@ -31,7 +31,7 @@ export class NonceCommand extends Command {
     try {
       const nonceScanner = new NonceScanner(args);
       const result = await nonceScanner.run(true);
-      console.log('Owner nonce:', result);
+      console.log('Next Nonce:', result);
     } catch (e: any) {
       console.error('\x1b[31m', e.message);
     }
