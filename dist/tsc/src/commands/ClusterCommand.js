@@ -10,18 +10,18 @@ class ClusterCommand extends Command_1.Command {
     }
     setArguments(parser) {
         parser.add_argument('-n', '--node-url', {
-            help: `The ETH1 node url.`,
+            help: `ETH1 (execution client) node endpoint url.`,
             required: true,
             dest: 'nodeUrl'
         });
         parser.add_argument('-ca', '--ssv-contract-address', {
-            help: 'The SSV Contract address, used to find the latest cluster data snapshot. ' +
+            help: 'The SSV network contract address. ' +
                 'Refer to https://docs.ssv.network/developers/smart-contracts',
             required: true,
             dest: 'contractAddress'
         });
         parser.add_argument('-oa', '--owner-address', {
-            help: "The owner address regarding the cluster that you want to query",
+            help: "The cluster owner address (in the SSV contract)",
             required: true,
             dest: 'ownerAddress'
         });

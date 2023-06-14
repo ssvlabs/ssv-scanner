@@ -17,8 +17,8 @@ async function main() {
   }, null, '  '));
 
   const nonceScanner = new NonceScanner(params);
-  const currentNonce = await nonceScanner.run();
-  console.log('Current nonce:', currentNonce);
+  const nextNonce = await nonceScanner.run();
+  console.log('Next nonce:', nextNonce);
 }
 
 void main();
