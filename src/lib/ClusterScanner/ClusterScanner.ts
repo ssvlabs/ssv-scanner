@@ -1,5 +1,5 @@
 import cliProgress from 'cli-progress';
-import Web3Provider from '../web3.provider';
+import { ContractProvider } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
 
@@ -37,13 +37,14 @@ export class ClusterScanner extends BaseScanner {
 
   private async _getClusterSnapshot(operatorIds: number[], cli?: boolean): Promise<IData> {
     let latestBlockNumber;
+    const contractProvider = new ContractProvider(this.params.ssvSyncEnv, this.params.ssvSyncGroup, this.params.nodeUrl);
     try {
-      latestBlockNumber = await Web3Provider.web3(this.params.nodeUrl).eth.getBlockNumber();
+      latestBlockNumber = await contractProvider.web3.eth.getBlockNumber();
     } catch (err) {
       throw new Error('Could not access the provided node endpoint.');
     }
     try {
-      await Web3Provider.contract(this.params.nodeUrl, this.params.contractAddress).methods.owner().call();
+      await contractProvider.contractCore.methods.owner().call();
       // HERE we can validate the contract owner address
     } catch (err) {
       console.log("eee", err);
@@ -53,8 +54,8 @@ export class ClusterScanner extends BaseScanner {
     let clusterSnapshot;
     let biggestBlockNumber = 0;
 
-    const genesisBlock = await Web3Provider.getGenesisBlock(this.params.nodeUrl, this.params.contractAddress);
-    const ownerTopic = Web3Provider.web3().eth.abi.encodeParameter('address', this.params.ownerAddress);
+    const genesisBlock = contractProvider.genesisBlock;
+    const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
       fromBlock: Math.max(latestBlockNumber - step, genesisBlock),
       toBlock: latestBlockNumber,
@@ -65,7 +66,7 @@ export class ClusterScanner extends BaseScanner {
     while (!clusterSnapshot && filters.fromBlock >= genesisBlock) {
       let result: any;
       try {
-        result = await Web3Provider.contract(this.params.nodeUrl, this.params.contractAddress).getPastEvents('allEvents', filters);
+        result = await contractProvider.contractCore.getPastEvents('allEvents', filters);
         result
           .filter((item: any) => this.eventsList.includes(item.event))
           .filter((item: any) => JSON.stringify(item.returnValues.operatorIds.map((value: any) => +value)) === JSON.stringify(operatorIds))

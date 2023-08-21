@@ -9,16 +9,23 @@ class ClusterCommand extends Command_1.Command {
         super('cluster', 'Handles cluster operations');
     }
     setArguments(parser) {
+        parser.add_argument('-sse', '--ssv-sync-env', {
+            help: 'The SSV sync environment (prod or stage). Default: prod',
+            default: 'prod',
+            choices: ['prod', 'stage'],
+            required: false,
+            dest: 'ssvSyncEnv',
+        });
+        parser.add_argument('-ssg', '--ssv-sync-group', {
+            help: 'The SSV contract name (format: version.network).',
+            choices: ['v3.prater', 'v4.prater', 'v4.mainnet'],
+            required: true,
+            dest: 'ssvSyncGroup',
+        });
         parser.add_argument('-n', '--node-url', {
             help: `ETH1 (execution client) node endpoint url.`,
             required: true,
             dest: 'nodeUrl'
-        });
-        parser.add_argument('-ca', '--ssv-contract-address', {
-            help: 'The SSV network contract address. ' +
-                'Refer to https://docs.ssv.network/developers/smart-contracts',
-            required: true,
-            dest: 'contractAddress'
         });
         parser.add_argument('-oa', '--owner-address', {
             help: "The cluster owner address (in the SSV contract)",
