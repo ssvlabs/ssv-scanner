@@ -26,8 +26,9 @@
         "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx",
         "clean": "rm -rf dist build package",
         "ts-node": "ts-node",
+        "copy-json": "cpy './src/shared/abi/*.json' './dist/tsc/src/shared/abi/'",
         "build": "tsc -p tsconfig.json",
-        "build-all": "yarn clean && yarn build && yarn esbuild",
+        "build-all": "yarn clean && yarn build && yarn copy-json && yarn esbuild",
         "esbuild": "node ./esbuild.js",
         "pre-commit": "yarn test && yarn lint && yarn build-all"
     },
@@ -35,6 +36,7 @@
         "@types/argparse": "^2.0.10",
         "@types/cli-progress": "^3.11.0",
         "@types/node": "^15.14.9",
+        "cpy-cli": "^5.0.0",
         "esbuild": "^0.14.38",
         "esbuild-node-externals": "^1.4.1",
         "eslint": "^7.32.0",
