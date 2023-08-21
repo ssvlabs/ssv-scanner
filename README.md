@@ -54,13 +54,14 @@ yarn cli --help
 **Input parameters:**
 
 - node-url (n) = The ETH1 node url
-- ssv-contract-address (ca) = SSV Network contract address
+- ssv-sync-env (sse) = The SSV sync environment (prod or stage). Default: prod
+- ssv-sync-group (ssg) = The SSV contract name (format: version.network)
 - owner-address (oa) = Cluster owner address
 - operator-ids (oids) = Comma separated operator ids list
 
 Example of running cluster scanner in the CLI:
 ```bash
-yarn cli cluster -n .... -ca .... -oa ..... -oids 1,2,3,4
+yarn cli cluster -n .... -ssg v4.prater -oa ..... -oids 1,2,3,4
 ```
 
 **Output:**  Latest cluster data (serialized).
@@ -70,13 +71,14 @@ yarn cli cluster -n .... -ca .... -oa ..... -oids 1,2,3,4
 **Input parameters:**
 
 - node-url (n) = The ETH1 node url
-- ssv-contract-address (ca) = SSV Network contract address
+- ssv-sync-env (sse) = The SSV sync environment (prod or stage). Default: prod
+- ssv-sync-group (ssg) = The SSV contract name (format: version.network)
 - owner-address (oa) = Cluster owner address
 
 
 Example of running nonce scanner in the CLI:
 ```bash
-yarn cli nonce -n .... -ca .... -oa .....
+yarn cli nonce -n .... -ssg v4.prater -oa .....
 ```
 
 **Output:**  Current owner nonce.
