@@ -16,13 +16,13 @@ export class ClusterCommand extends Command {
       dest: 'ssvSyncEnv',
     });
     parser.add_argument('-ssg', '--ssv-sync-group', {
-      help: 'The SSV contract name (format: version.network).',
+      help: 'The SSV contract name (format: version.network)',
       choices: ['v3.prater', 'v4.prater', 'v4.mainnet'],
       required: true,
       dest: 'ssvSyncGroup',
     });
     parser.add_argument('-n', '--node-url', {
-      help: `ETH1 (execution client) node endpoint url.`,
+      help: `ETH1 (execution client) node endpoint url`,
       required: true,
       dest: 'nodeUrl'
     });
