@@ -18,7 +18,7 @@ class ClusterCommand extends Command_1.Command {
         });
         parser.add_argument('-ssg', '--ssv-sync-group', {
             help: 'The SSV contract name (format: version.network)',
-            choices: ['v3.prater', 'v4.prater', 'v4.mainnet'],
+            choices: ['v4.prater', 'v4.mainnet'],
             required: true,
             dest: 'ssvSyncGroup',
         });
