@@ -1,8 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractProvider = void 0;
+exports.ContractProvider = exports.ContractVersion = void 0;
 const tslib_1 = require("tslib");
 const web3_1 = tslib_1.__importDefault(require("web3"));
+exports.ContractVersion = {
+    MAINNET: 'prod:v4.mainnet',
+    PRATER: 'prod:v4.prater',
+    PRATER_STAGE: 'stage:v4.prater',
+};
 class ContractProvider {
     constructor(contractEnv, contractGroup, nodeUrl) {
         let [version, network] = contractGroup.split('.');

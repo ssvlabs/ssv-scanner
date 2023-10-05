@@ -11,6 +11,11 @@ export type ContractData = {
     abiViews: Record<string, any>;
     genesisBlock: number;
 };
+export declare const ContractVersion: {
+    readonly MAINNET: "prod:v4.mainnet";
+    readonly PRATER: "prod:v4.prater";
+    readonly PRATER_STAGE: "stage:v4.prater";
+};
 export declare class ContractProvider {
     private contract;
     web3: Web3;

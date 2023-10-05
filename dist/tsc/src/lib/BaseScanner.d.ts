@@ -1,6 +1,5 @@
 export interface SSVScannerParams {
-    ssvSyncEnv: string;
-    ssvSyncGroup: string;
+    ssvNetwork: string;
     nodeUrl: string;
     ownerAddress: string;
     contractAddress: string;

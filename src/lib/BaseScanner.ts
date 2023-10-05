@@ -1,8 +1,7 @@
 import Web3 from 'web3';
 
 export interface SSVScannerParams {
-  ssvSyncEnv: string,
-  ssvSyncGroup: string,
+  ssvNetwork: string,
   nodeUrl: string,
   ownerAddress: string,
   contractAddress: string,
@@ -19,6 +18,9 @@ export abstract class BaseScanner {
   constructor(scannerParams: SSVScannerParams) {
     if (!scannerParams.nodeUrl) {
       throw Error('ETH1 node is required');
+    }
+    if (!scannerParams.ssvNetwork) {
+      throw Error('Network is required');
     }
     if (!scannerParams.ownerAddress) {
       throw Error('Cluster owner address is required');
