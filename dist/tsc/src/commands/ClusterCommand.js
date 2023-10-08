@@ -9,11 +9,11 @@ class ClusterCommand extends Command_1.Command {
         super('cluster', 'Handles cluster operations');
     }
     setArguments(parser) {
-        parser.add_argument('-nw', '--ssv-network', {
+        parser.add_argument('-nw', '--network', {
             help: 'The network',
             choices: ['mainnet', 'prater'],
             required: true,
-            dest: 'ssvNetwork',
+            dest: 'network',
         });
         parser.add_argument('-n', '--node-url', {
             help: `ETH1 (execution client) node endpoint url`,

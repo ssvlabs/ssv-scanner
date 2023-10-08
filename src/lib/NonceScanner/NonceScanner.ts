@@ -25,7 +25,7 @@ export class NonceScanner extends BaseScanner {
   }
 
   private async _getLatestNonce(cli?: boolean): Promise<number> {
-    const [networkEnv, networkGroup] = ContractVersion[this.params.ssvNetwork.toUpperCase() as keyof typeof ContractVersion].split(':');
+    const [networkEnv, networkGroup] = ContractVersion[this.params.network.toUpperCase() as keyof typeof ContractVersion].split(':');
     const contractProvider = new ContractProvider(networkEnv, networkGroup, this.params.nodeUrl);
 
     let latestBlockNumber;

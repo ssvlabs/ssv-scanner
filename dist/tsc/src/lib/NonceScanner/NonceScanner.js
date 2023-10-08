@@ -31,7 +31,7 @@ class NonceScanner extends BaseScanner_1.BaseScanner {
     }
     _getLatestNonce(cli) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const [networkEnv, networkGroup] = contract_provider_1.ContractVersion[this.params.ssvNetwork.toUpperCase()].split(':');
+            const [networkEnv, networkGroup] = contract_provider_1.ContractVersion[this.params.network.toUpperCase()].split(':');
             const contractProvider = new contract_provider_1.ContractProvider(networkEnv, networkGroup, this.params.nodeUrl);
             let latestBlockNumber;
             try {

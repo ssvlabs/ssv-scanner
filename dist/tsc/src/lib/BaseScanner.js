@@ -11,7 +11,7 @@ class BaseScanner {
         if (!scannerParams.nodeUrl) {
             throw Error('ETH1 node is required');
         }
-        if (!scannerParams.ssvNetwork) {
+        if (!scannerParams.network) {
             throw Error('Network is required');
         }
         if (!scannerParams.ownerAddress) {

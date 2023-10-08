@@ -8,11 +8,11 @@ export class NonceCommand extends Command {
   }
 
   setArguments(parser: ArgumentParser): void {
-    parser.add_argument('-nw', '--ssv-network', {
+    parser.add_argument('-nw', '--network', {
       help: 'The network',
       choices: ['mainnet', 'prater'],
       required: true,
-      dest: 'ssvNetwork',
+      dest: 'network',
     });
     parser.add_argument('-n', '--node-url', {
       help: `ETH1 (execution client) node endpoint url`,

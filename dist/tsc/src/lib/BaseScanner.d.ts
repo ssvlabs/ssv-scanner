@@ -1,5 +1,5 @@
 export interface SSVScannerParams {
-    ssvNetwork: string;
+    network: string;
     nodeUrl: string;
     ownerAddress: string;
     contractAddress: string;

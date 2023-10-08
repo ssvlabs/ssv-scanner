@@ -36,7 +36,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
     _getClusterSnapshot(operatorIds, cli) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             let latestBlockNumber;
-            const [networkEnv, networkGroup] = contract_provider_1.ContractVersion[this.params.ssvNetwork.toUpperCase()].split(':');
+            const [networkEnv, networkGroup] = contract_provider_1.ContractVersion[this.params.network.toUpperCase()].split(':');
             const contractProvider = new contract_provider_1.ContractProvider(networkEnv, networkGroup, this.params.nodeUrl);
             try {
                 latestBlockNumber = yield contractProvider.web3.eth.getBlockNumber();

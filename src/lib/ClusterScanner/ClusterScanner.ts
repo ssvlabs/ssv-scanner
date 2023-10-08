@@ -37,7 +37,7 @@ export class ClusterScanner extends BaseScanner {
 
   private async _getClusterSnapshot(operatorIds: number[], cli?: boolean): Promise<IData> {
     let latestBlockNumber;
-    const [networkEnv, networkGroup] = ContractVersion[this.params.ssvNetwork.toUpperCase() as keyof typeof ContractVersion].split(':');
+    const [networkEnv, networkGroup] = ContractVersion[this.params.network.toUpperCase() as keyof typeof ContractVersion].split(':');
     const contractProvider = new ContractProvider(networkEnv, networkGroup, this.params.nodeUrl);
     try {
       latestBlockNumber = await contractProvider.web3.eth.getBlockNumber();
