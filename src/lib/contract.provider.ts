@@ -13,6 +13,12 @@ export type ContractData = {
   genesisBlock: number;
 };
 
+export const ContractVersion = {
+  MAINNET: 'prod:v4.mainnet',
+  PRATER: 'prod:v4.prater',
+  PRATER_STAGE: 'stage:v4.prater',
+} as const;
+
 export class ContractProvider {
   private contract: ContractData;
   public web3: Web3;

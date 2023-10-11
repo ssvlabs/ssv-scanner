@@ -8,18 +8,11 @@ export class ClusterCommand extends Command {
   }
 
   setArguments(parser: ArgumentParser): void {
-    parser.add_argument('-sse', '--ssv-sync-env', {
-      help: 'The SSV sync environment (prod or stage). Default: prod',
-      default: 'prod',
-      choices: ['prod', 'stage'],
-      required: false,
-      dest: 'ssvSyncEnv',
-    });
-    parser.add_argument('-ssg', '--ssv-sync-group', {
-      help: 'The SSV contract name (format: version.network)',
-      choices: ['v4.prater', 'v4.mainnet'],
+    parser.add_argument('-nw', '--network', {
+      help: 'The network',
+      choices: ['mainnet', 'prater'],
       required: true,
-      dest: 'ssvSyncGroup',
+      dest: 'network',
     });
     parser.add_argument('-n', '--node-url', {
       help: `ETH1 (execution client) node endpoint url`,
