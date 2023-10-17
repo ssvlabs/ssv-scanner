@@ -10,7 +10,7 @@ export class NonceCommand extends Command {
   setArguments(parser: ArgumentParser): void {
     parser.add_argument('-nw', '--network', {
       help: 'The network',
-      choices: ['mainnet', 'prater'],
+      choices: ['mainnet', 'prater', 'holesky'],
       required: true,
       dest: 'network',
     });
@@ -23,7 +23,7 @@ export class NonceCommand extends Command {
       help: "The cluster owner address (in the SSV contract)",
       required: true,
       dest: 'ownerAddress'
-    });    
+    });
   }
 
   async run(args: any): Promise<void> {

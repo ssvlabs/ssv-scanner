@@ -12,7 +12,7 @@ export class NonceScanner extends BaseScanner {
   async run(cli?: boolean): Promise<number> {
     if (cli) {
       console.log('\nScanning blockchain...');
-      this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);  
+      this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     }
     try {
       const data = await this._getLatestNonce(cli);
@@ -54,7 +54,7 @@ export class NonceScanner extends BaseScanner {
     do {
       let result: any;
       try {
-        result = 
+        result =
           (await contractProvider.contractCore.getPastEvents('AllEvents', filters))
           .filter((item: any) => this.eventsList.includes(item.event));
         latestNonce += result.length;
