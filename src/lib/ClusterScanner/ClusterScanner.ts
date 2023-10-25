@@ -28,7 +28,7 @@ export class ClusterScanner extends BaseScanner {
 
     if (cli) {
       console.log('\nScanning blockchain...');
-      this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);  
+      this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     }
     const data: IData = await this._getClusterSnapshot(operatorIds, cli);
     cli && this.progressBar.stop();
@@ -42,14 +42,13 @@ export class ClusterScanner extends BaseScanner {
     try {
       latestBlockNumber = await contractProvider.web3.eth.getBlockNumber();
     } catch (err) {
-      throw new Error('Could not access the provided node endpoint.');
+      throw new Error('Could not access the provided node endpoint: ' + err);
     }
     try {
       await contractProvider.contractCore.methods.owner().call();
       // HERE we can validate the contract owner address
     } catch (err) {
-      console.log("eee", err);
-      throw new Error('Could not find any cluster snapshot from the provided contract address.');
+      throw new Error('Could not find any cluster snapshot from the provided contract address: ' + err);
     }
     let step = this.MONTH;
     let clusterSnapshot;
@@ -110,6 +109,6 @@ export class ClusterScanner extends BaseScanner {
   }
 
   private _isValidOperatorIds(operatorsLength: number) {
-    return (operatorsLength < 4 || operatorsLength > 13 || operatorsLength % 3 != 1) ? false : true;
+    return (!(operatorsLength < 4 || operatorsLength > 13 || operatorsLength % 3 != 1));
   }
 }

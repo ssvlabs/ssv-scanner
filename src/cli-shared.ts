@@ -1,10 +1,9 @@
 import figlet from 'figlet';
 import pkg from '../package.json';
+import * as process from 'process';
 import { ArgumentParser } from 'argparse';
-
 import { NonceCommand } from './commands/NonceCommand';
 import { ClusterCommand } from './commands/ClusterCommand';
-// import { SSVScannerCommand } from './commands/SSVScannerCommand';
 
 const FigletMessage = async (message: string) => {
   return new Promise(resolve => {
@@ -18,16 +17,6 @@ const FigletMessage = async (message: string) => {
 }
 
 export default async function main(): Promise<any> {
-  const mainParser = new ArgumentParser();
-  
-  const subparsers = mainParser.add_subparsers({ title: 'commands', dest: 'command' });
-  
-  const clusterCommand = new ClusterCommand();
-  const nonceCommand = new NonceCommand();
-  
-  clusterCommand.setArguments(subparsers.add_parser(clusterCommand.name, { add_help: true }));
-  nonceCommand.setArguments(subparsers.add_parser(nonceCommand.name, { add_help: true }));
-  
   const messageText = `SSV Scanner v${pkg.version}`;
   const message = await FigletMessage(messageText);
   if (message) {
@@ -40,14 +29,34 @@ export default async function main(): Promise<any> {
     console.log(' -----------------------------------------------------------------------------------\n');
   }
 
-  const args = mainParser.parse_args();
-  
-  switch (args.command) {
+  const rootParser = new ArgumentParser();
+  const subParsers = rootParser.add_subparsers({ title: 'commands', dest: 'command' });
+
+  const clusterCommand = new ClusterCommand();
+  const nonceCommand = new NonceCommand();
+  const clusterCommandParser = subParsers.add_parser(clusterCommand.name, { add_help: true })
+  const nonceCommandParser = subParsers.add_parser(nonceCommand.name, { add_help: true });
+
+  let command = '';
+  const args = process.argv.slice(2); // Skip node and script name
+
+  if (args[1] && args[1].includes('--help')) {
+    clusterCommand.setArguments(clusterCommandParser);
+    nonceCommand.setArguments(nonceCommandParser);
+    rootParser.parse_args(); // Print help and exit
+  } else {
+    let args = rootParser.parse_known_args();
+    command = args[0]['command'];
+    clusterCommand.setArguments(clusterCommandParser);
+    nonceCommand.setArguments(nonceCommandParser);
+  }
+
+  switch (command) {
     case clusterCommand.name:
-      await clusterCommand.run(args);
+      await clusterCommand.run(clusterCommand.parse(args));
       break;
     case nonceCommand.name:
-      await nonceCommand.run(args);
+      await nonceCommand.run(nonceCommand.parse(args));
       break;
     default:
       console.error('Command not found');

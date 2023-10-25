@@ -16,7 +16,9 @@ export type ContractData = {
 export const ContractVersion = {
   MAINNET: 'prod:v4.mainnet',
   PRATER: 'prod:v4.prater',
+  HOLESKY: 'prod:v4.holesky',
   PRATER_STAGE: 'stage:v4.prater',
+  HOLESKY_STAGE: 'stage:v4.holesky',
 } as const;
 
 export class ContractProvider {

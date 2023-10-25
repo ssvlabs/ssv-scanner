@@ -54,7 +54,7 @@ yarn cli --help
 **Input parameters:**
 
 - node-url (n) = The ETH1 node url
-- network (nw) = The network (mainnet, prater)
+- network (nw) = The network (mainnet, prater, holesky)
 - owner-address (oa) = Cluster owner address
 - operator-ids (oids) = Comma separated operator ids list
 
@@ -70,7 +70,7 @@ yarn cli cluster -n .... -nw mainnet -oa ..... -oids 1,2,3,4
 **Input parameters:**
 
 - node-url (n) = The ETH1 node url
-- network (nw) = The network (mainnet, prater)
+- network (nw) = The network (mainnet, prater, holesky)
 - owner-address (oa) = Cluster owner address
 
 

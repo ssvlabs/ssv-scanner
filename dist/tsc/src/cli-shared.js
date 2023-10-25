@@ -3,10 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tslib_1 = require("tslib");
 const figlet_1 = tslib_1.__importDefault(require("figlet"));
 const package_json_1 = tslib_1.__importDefault(require("../package.json"));
+const process = tslib_1.__importStar(require("process"));
 const argparse_1 = require("argparse");
 const NonceCommand_1 = require("./commands/NonceCommand");
 const ClusterCommand_1 = require("./commands/ClusterCommand");
-// import { SSVScannerCommand } from './commands/SSVScannerCommand';
 const FigletMessage = (message) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
     return new Promise(resolve => {
         (0, figlet_1.default)(message, (error, output) => {
@@ -19,12 +19,6 @@ const FigletMessage = (message) => tslib_1.__awaiter(void 0, void 0, void 0, fun
 });
 function main() {
     return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        const mainParser = new argparse_1.ArgumentParser();
-        const subparsers = mainParser.add_subparsers({ title: 'commands', dest: 'command' });
-        const clusterCommand = new ClusterCommand_1.ClusterCommand();
-        const nonceCommand = new NonceCommand_1.NonceCommand();
-        clusterCommand.setArguments(subparsers.add_parser(clusterCommand.name, { add_help: true }));
-        nonceCommand.setArguments(subparsers.add_parser(nonceCommand.name, { add_help: true }));
         const messageText = `SSV Scanner v${package_json_1.default.version}`;
         const message = yield FigletMessage(messageText);
         if (message) {
@@ -36,13 +30,31 @@ function main() {
             }
             console.log(' -----------------------------------------------------------------------------------\n');
         }
-        const args = mainParser.parse_args();
-        switch (args.command) {
+        const rootParser = new argparse_1.ArgumentParser();
+        const subParsers = rootParser.add_subparsers({ title: 'commands', dest: 'command' });
+        const clusterCommand = new ClusterCommand_1.ClusterCommand();
+        const nonceCommand = new NonceCommand_1.NonceCommand();
+        const clusterCommandParser = subParsers.add_parser(clusterCommand.name, { add_help: true });
+        const nonceCommandParser = subParsers.add_parser(nonceCommand.name, { add_help: true });
+        let command = '';
+        const args = process.argv.slice(2); // Skip node and script name
+        if (args[1] && args[1].includes('--help')) {
+            clusterCommand.setArguments(clusterCommandParser);
+            nonceCommand.setArguments(nonceCommandParser);
+            rootParser.parse_args(); // Print help and exit
+        }
+        else {
+            let args = rootParser.parse_known_args();
+            command = args[0]['command'];
+            clusterCommand.setArguments(clusterCommandParser);
+            nonceCommand.setArguments(nonceCommandParser);
+        }
+        switch (command) {
             case clusterCommand.name:
-                yield clusterCommand.run(args);
+                yield clusterCommand.run(clusterCommand.parse(args));
                 break;
             case nonceCommand.name:
-                yield nonceCommand.run(args);
+                yield nonceCommand.run(nonceCommand.parse(args));
                 break;
             default:
                 console.error('Command not found');

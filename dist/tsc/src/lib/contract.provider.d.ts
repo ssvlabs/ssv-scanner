@@ -14,7 +14,9 @@ export type ContractData = {
 export declare const ContractVersion: {
     readonly MAINNET: "prod:v4.mainnet";
     readonly PRATER: "prod:v4.prater";
+    readonly HOLESKY: "prod:v4.holesky";
     readonly PRATER_STAGE: "stage:v4.prater";
+    readonly HOLESKY_STAGE: "stage:v4.holesky";
 };
 export declare class ContractProvider {
     private contract;

@@ -10,7 +10,7 @@ export class ClusterCommand extends Command {
   setArguments(parser: ArgumentParser): void {
     parser.add_argument('-nw', '--network', {
       help: 'The network',
-      choices: ['mainnet', 'prater'],
+      choices: ['mainnet', 'prater', 'holesky'],
       required: true,
       dest: 'network',
     });
@@ -28,7 +28,7 @@ export class ClusterCommand extends Command {
       help: `Comma-separated list of operators IDs regarding the cluster that you want to query`,
       required: true,
       dest: 'operatorIds'
-    });  
+    });
   }
 
   async run(args: any): Promise<void> {
