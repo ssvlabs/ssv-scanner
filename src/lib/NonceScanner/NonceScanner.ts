@@ -1,6 +1,6 @@
 
 import cliProgress from 'cli-progress';
-import Web3Provider from '../web3.provider';
+import { ContractProvider, ContractVersion } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
 
@@ -12,7 +12,7 @@ export class NonceScanner extends BaseScanner {
   async run(cli?: boolean): Promise<number> {
     if (cli) {
       console.log('\nScanning blockchain...');
-      this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);  
+      this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     }
     try {
       const data = await this._getLatestNonce(cli);
@@ -25,22 +25,25 @@ export class NonceScanner extends BaseScanner {
   }
 
   private async _getLatestNonce(cli?: boolean): Promise<number> {
+    const [networkEnv, networkGroup] = ContractVersion[this.params.network.toUpperCase() as keyof typeof ContractVersion].split(':');
+    const contractProvider = new ContractProvider(networkEnv, networkGroup, this.params.nodeUrl);
+
     let latestBlockNumber;
     try {
-      latestBlockNumber = await Web3Provider.web3(this.params.nodeUrl).eth.getBlockNumber();
+      latestBlockNumber = await contractProvider.web3.eth.getBlockNumber();
     } catch (err) {
       throw new Error('Could not access the provided node endpoint.');
     }
     try {
-      await Web3Provider.contract(this.params.nodeUrl, this.params.contractAddress).methods.owner().call();
+      await contractProvider.contractCore.methods.owner().call();
     } catch (err) {
       throw new Error('Could not find any cluster snapshot from the provided contract address.');
     }
     let step = this.MONTH;
     let latestNonce = 0;
 
-    const genesisBlock = await Web3Provider.getGenesisBlock(this.params.nodeUrl, this.params.contractAddress);
-    const ownerTopic = Web3Provider.web3().eth.abi.encodeParameter('address', this.params.ownerAddress);
+    const genesisBlock = contractProvider.genesisBlock;
+    const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
       fromBlock: genesisBlock,
       toBlock: latestBlockNumber,
@@ -51,8 +54,8 @@ export class NonceScanner extends BaseScanner {
     do {
       let result: any;
       try {
-        result = 
-          (await Web3Provider.contract(this.params.nodeUrl, this.params.contractAddress).getPastEvents('AllEvents', filters))
+        result =
+          (await contractProvider.contractCore.getPastEvents('AllEvents', filters))
           .filter((item: any) => this.eventsList.includes(item.event));
         latestNonce += result.length;
         filters.fromBlock = filters.toBlock + 1;

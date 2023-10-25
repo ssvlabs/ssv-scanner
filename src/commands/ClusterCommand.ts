@@ -8,17 +8,16 @@ export class ClusterCommand extends Command {
   }
 
   setArguments(parser: ArgumentParser): void {
+    parser.add_argument('-nw', '--network', {
+      help: 'The network',
+      choices: ['mainnet', 'prater', 'holesky'],
+      required: true,
+      dest: 'network',
+    });
     parser.add_argument('-n', '--node-url', {
-      help: `ETH1 (execution client) node endpoint url.`,
+      help: `ETH1 (execution client) node endpoint url`,
       required: true,
       dest: 'nodeUrl'
-    });
-    parser.add_argument('-ca', '--ssv-contract-address', {
-      help:
-        'The SSV network contract address. ' +
-        'Refer to https://docs.ssv.network/developers/smart-contracts',
-      required: true,
-      dest: 'contractAddress'
     });
     parser.add_argument('-oa', '--owner-address', {
       help: "The cluster owner address (in the SSV contract)",
@@ -29,7 +28,7 @@ export class ClusterCommand extends Command {
       help: `Comma-separated list of operators IDs regarding the cluster that you want to query`,
       required: true,
       dest: 'operatorIds'
-    });  
+    });
   }
 
   async run(args: any): Promise<void> {

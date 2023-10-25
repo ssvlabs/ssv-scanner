@@ -1,6 +1,7 @@
-import Web3Provider from './web3.provider';
+import Web3 from 'web3';
 
 export interface SSVScannerParams {
+  network: string,
   nodeUrl: string,
   ownerAddress: string,
   contractAddress: string,
@@ -15,20 +16,14 @@ export abstract class BaseScanner {
   protected params: SSVScannerParams;
 
   constructor(scannerParams: SSVScannerParams) {
-    if (!scannerParams.contractAddress) {
-      throw Error('Contract address is required');
-    }
     if (!scannerParams.nodeUrl) {
       throw Error('ETH1 node is required');
     }
+    if (!scannerParams.network) {
+      throw Error('Network is required');
+    }
     if (!scannerParams.ownerAddress) {
       throw Error('Cluster owner address is required');
-    }
-    if (scannerParams.contractAddress.length !== 42) {
-      throw Error('Invalid contract address length.');
-    }
-    if (!scannerParams.contractAddress.startsWith('0x')) {
-      throw Error('Invalid contract address.');
     }
     if (scannerParams.ownerAddress.length !== 42) {
       throw Error('Invalid owner address length.');
@@ -38,7 +33,7 @@ export abstract class BaseScanner {
     }
     this.params = scannerParams;
     // convert to checksum addresses
-    this.params.contractAddress = Web3Provider.web3().utils.toChecksumAddress(this.params.contractAddress);
-    this.params.ownerAddress = Web3Provider.web3().utils.toChecksumAddress(this.params.ownerAddress);
+    this.params.contractAddress = new Web3().utils.toChecksumAddress(this.params.contractAddress);
+    this.params.ownerAddress = new Web3().utils.toChecksumAddress(this.params.ownerAddress);
   }
 }
