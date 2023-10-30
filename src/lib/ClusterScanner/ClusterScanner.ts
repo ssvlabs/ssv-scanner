@@ -53,6 +53,7 @@ export class ClusterScanner extends BaseScanner {
     let step = this.MONTH;
     let clusterSnapshot;
     let biggestBlockNumber = 0;
+    let transactionIndex = 0;
 
     const genesisBlock = contractProvider.genesisBlock;
     const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
@@ -70,9 +71,16 @@ export class ClusterScanner extends BaseScanner {
         result
           .filter((item: any) => this.eventsList.includes(item.event))
           .filter((item: any) => JSON.stringify(item.returnValues.operatorIds.map((value: any) => +value)) === JSON.stringify(operatorIds))
+          .sort((a: any, b: any) => a.blockNumber - b.blockNumber)  // Sort by blockNumber in ascending order
           .forEach((item: any) => {
-            if (item.blockNumber > biggestBlockNumber) {
+            if (item.blockNumber >= biggestBlockNumber) {
+              const previousBlockNumber = biggestBlockNumber;
               biggestBlockNumber = item.blockNumber;
+              // same block number case to compare transactionIndex in block
+              if (previousBlockNumber === item.blockNumber && item.transactionIndex < transactionIndex) {
+                return;
+              }
+              transactionIndex = item.transactionIndex; // to use only for the case multiple events in one block number
               clusterSnapshot = item.returnValues.cluster;
             }
           });
