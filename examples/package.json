@@ -9,7 +9,7 @@
   "author": "SSV.Network",
   "license": "ISC",
   "dependencies": {
-    "ssv-scanner": "https://github.com/bloxapp/ssv-scanner.git"
+    "ssv-scanner": "https://github.com/bloxapp/ssv-scanner.git#*"
   },
   "devDependencies": {
     "ts-node": "^10.8.2",
