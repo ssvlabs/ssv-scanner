@@ -18,8 +18,9 @@ Important dependencies:
 
 ---
 
-Repo contains ssv scanner library and CLI.
-It is used to retrieve the latest cluster snapshot or owner nonce from the blockchain.
+This repository contains The ssv scanner library and CLI.
+It is used to retrieve events data from the SSV [network contract](https://docs.ssv.network/developers/smart-contracts/ssvnetwork).
+The tool is used for retrieving the latest cluster snapshot or owner nonce from the blockchain, which are required as inputs for SSV tooling and smart contract transactions.
 
 ## Running from the CLI
 
