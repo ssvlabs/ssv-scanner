@@ -5,7 +5,6 @@ async function main() {
     network: '',
     nodeUrl: '',
     ownerAddress: '',
-    contractAddress: '',
     operatorIds: []
   }
 

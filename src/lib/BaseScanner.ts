@@ -1,10 +1,11 @@
 import Web3 from 'web3';
 
+// import {ContractProvider} from "./contract.provider";
+
 export interface SSVScannerParams {
   network: string,
   nodeUrl: string,
   ownerAddress: string,
-  contractAddress: string,
 }
 
 export abstract class BaseScanner {
@@ -33,7 +34,7 @@ export abstract class BaseScanner {
     }
     this.params = scannerParams;
     // convert to checksum addresses
-    this.params.contractAddress = new Web3().utils.toChecksumAddress(this.params.contractAddress);
+
     this.params.ownerAddress = new Web3().utils.toChecksumAddress(this.params.ownerAddress);
   }
 }
