@@ -21,8 +21,7 @@ export declare const ContractVersion: {
 export declare class ContractProvider {
     private contract;
     web3: Web3;
-    constructor(networkAndEnv: string, nodeUrl: string);
-    get contractAddress(): string;
+    constructor(contractEnv: string, contractGroup: string, nodeUrl: string);
     get abiCore(): any;
     get abiViews(): any;
     get contractCore(): import("web3-eth-contract").Contract;

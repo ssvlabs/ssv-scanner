@@ -1,6 +1,6 @@
 
 import cliProgress from 'cli-progress';
-import { ContractProvider } from '../contract.provider';
+import { ContractProvider, ContractVersion } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
 
@@ -25,7 +25,8 @@ export class NonceScanner extends BaseScanner {
   }
 
   private async _getLatestNonce(cli?: boolean): Promise<number> {
-    const contractProvider = new ContractProvider(this.params.network, this.params.nodeUrl);
+    const [networkEnv, networkGroup] = ContractVersion[this.params.network.toUpperCase() as keyof typeof ContractVersion].split(':');
+    const contractProvider = new ContractProvider(networkEnv, networkGroup, this.params.nodeUrl);
 
     let latestBlockNumber;
     try {

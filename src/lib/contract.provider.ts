@@ -25,20 +25,19 @@ export class ContractProvider {
   private contract: ContractData;
   public web3: Web3;
 
-  constructor(networkAndEnv: string, nodeUrl: string) {
+  constructor(contractEnv: string, contractGroup: string, nodeUrl: string) {
 
-    const [contractEnv, contractNetwork] = ContractVersion[networkAndEnv.toUpperCase() as keyof typeof ContractVersion].split(':');
-    let [version, network] = contractNetwork.split('.');
+    let [version, network] = contractGroup.split('.');
     version = version.toUpperCase();
     network = network.toUpperCase();
 
     let jsonCoreData;
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      jsonCoreData = require(`../shared/abi/${contractEnv}.${contractNetwork}.abi.json`);
+      jsonCoreData = require(`../shared/abi/${contractEnv}.${contractGroup}.abi.json`);
     } catch (err) {
       console.error(
-        `Failed to load JSON data from ${contractEnv}.${contractNetwork}.abi.json`,
+        `Failed to load JSON data from ${contractEnv}.${contractGroup}.abi.json`,
         err,
       );
       throw err;
@@ -47,10 +46,10 @@ export class ContractProvider {
     let jsonViewsData;
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      jsonViewsData = require(`../shared/abi/${contractEnv}.${contractNetwork}.views.abi.json`);
+      jsonViewsData = require(`../shared/abi/${contractEnv}.${contractGroup}.views.abi.json`);
     } catch (err) {
       console.error(
-        `Failed to load JSON data from ${contractEnv}.${contractNetwork}.views.abi.json`,
+        `Failed to load JSON data from ${contractEnv}.${contractGroup}.views.abi.json`,
         err,
       );
       throw err;
@@ -63,14 +62,14 @@ export class ContractProvider {
       !jsonCoreData.genesisBlock
     ) {
       throw new Error(
-        `Missing core data in JSON for ${contractEnv}.${contractNetwork}`,
+        `Missing core data in JSON for ${contractEnv}.${contractGroup}`,
       );
     }
 
     // Check if required properties exist in jsonData
     if (!jsonViewsData.contractAddress || !jsonViewsData.abi) {
       throw new Error(
-        `Missing views data in JSON for ${contractEnv}.${contractNetwork}`,
+        `Missing views data in JSON for ${contractEnv}.${contractGroup}`,
       );
     }
 
@@ -85,10 +84,6 @@ export class ContractProvider {
     };
 
     this.web3 = new Web3(nodeUrl);
-  }
-
-  get contractAddress(): string {
-    return this.contract.address
   }
 
   get abiCore() {

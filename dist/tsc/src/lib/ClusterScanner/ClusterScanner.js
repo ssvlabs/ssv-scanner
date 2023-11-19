@@ -36,7 +36,8 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
     _getClusterSnapshot(operatorIds, cli) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             let latestBlockNumber;
-            const contractProvider = new contract_provider_1.ContractProvider(this.params.network, this.params.nodeUrl);
+            const [networkEnv, networkGroup] = contract_provider_1.ContractVersion[this.params.network.toUpperCase()].split(':');
+            const contractProvider = new contract_provider_1.ContractProvider(networkEnv, networkGroup, this.params.nodeUrl);
             try {
                 latestBlockNumber = yield contractProvider.web3.eth.getBlockNumber();
             }
@@ -53,7 +54,6 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
             let step = this.MONTH;
             let clusterSnapshot;
             let biggestBlockNumber = 0;
-            let transactionIndex = 0;
             const genesisBlock = contractProvider.genesisBlock;
             const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
             const filters = {
@@ -69,16 +69,9 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                     result
                         .filter((item) => this.eventsList.includes(item.event))
                         .filter((item) => JSON.stringify(item.returnValues.operatorIds.map((value) => +value)) === JSON.stringify(operatorIds))
-                        .sort((a, b) => a.blockNumber - b.blockNumber) // Sort by blockNumber in ascending order
                         .forEach((item) => {
-                        if (item.blockNumber >= biggestBlockNumber) {
-                            const previousBlockNumber = biggestBlockNumber;
+                        if (item.blockNumber > biggestBlockNumber) {
                             biggestBlockNumber = item.blockNumber;
-                            // same block number case to compare transactionIndex in block
-                            if (previousBlockNumber === item.blockNumber && item.transactionIndex < transactionIndex) {
-                                return;
-                            }
-                            transactionIndex = item.transactionIndex; // to use only for the case multiple events in one block number
                             clusterSnapshot = item.returnValues.cluster;
                         }
                     });
