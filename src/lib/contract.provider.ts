@@ -25,9 +25,9 @@ export class ContractProvider {
   private contract: ContractData;
   public web3: Web3;
 
-  constructor(networkInfo: string, nodeUrl: string) {
+  constructor(networkAndEnv: string, nodeUrl: string) {
 
-    const [contractEnv, contractNetwork] = ContractVersion[networkInfo.toUpperCase() as keyof typeof ContractVersion].split(':');
+    const [contractEnv, contractNetwork] = ContractVersion[networkAndEnv.toUpperCase() as keyof typeof ContractVersion].split(':');
     let [version, network] = contractNetwork.split('.');
     version = version.toUpperCase();
     network = network.toUpperCase();
