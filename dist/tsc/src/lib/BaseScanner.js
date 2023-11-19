@@ -25,7 +25,6 @@ class BaseScanner {
         }
         this.params = scannerParams;
         // convert to checksum addresses
-        this.params.contractAddress = new web3_1.default().utils.toChecksumAddress(this.params.contractAddress);
         this.params.ownerAddress = new web3_1.default().utils.toChecksumAddress(this.params.ownerAddress);
     }
 }
