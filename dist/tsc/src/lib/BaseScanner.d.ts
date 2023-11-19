@@ -2,7 +2,6 @@ export interface SSVScannerParams {
     network: string;
     nodeUrl: string;
     ownerAddress: string;
-    contractAddress: string;
 }
 export declare abstract class BaseScanner {
     protected DAY: number;

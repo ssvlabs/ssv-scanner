@@ -1,5 +1,5 @@
 import cliProgress from 'cli-progress';
-import { ContractProvider, ContractVersion } from '../contract.provider';
+import { ContractProvider } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
 
@@ -37,8 +37,7 @@ export class ClusterScanner extends BaseScanner {
 
   private async _getClusterSnapshot(operatorIds: number[], cli?: boolean): Promise<IData> {
     let latestBlockNumber;
-    const [networkEnv, networkGroup] = ContractVersion[this.params.network.toUpperCase() as keyof typeof ContractVersion].split(':');
-    const contractProvider = new ContractProvider(networkEnv, networkGroup, this.params.nodeUrl);
+    const contractProvider = new ContractProvider(this.params.network, this.params.nodeUrl);
     try {
       latestBlockNumber = await contractProvider.web3.eth.getBlockNumber();
     } catch (err) {

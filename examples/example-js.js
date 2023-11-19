@@ -1,11 +1,12 @@
-const { ClusterScanner, NonceScanner } = require('ssv-scanner');
+import {ClusterScanner, NonceScanner} from "ssv-scanner";
+
 
 async function main() {
   const params = {
+    network: '',
     nodeUrl: '',
-    contractAddress: '',
     ownerAddress: '',
-    operatorIds: [],
+    operatorIds: []
   }
 
   const clusterScanner = new ClusterScanner(params);
