@@ -5,9 +5,7 @@ const tslib_1 = require("tslib");
 const web3_1 = tslib_1.__importDefault(require("web3"));
 exports.ContractVersion = {
     MAINNET: 'prod:v4.mainnet',
-    PRATER: 'prod:v4.prater',
     HOLESKY: 'prod:v4.holesky',
-    PRATER_STAGE: 'stage:v4.prater',
     HOLESKY_STAGE: 'stage:v4.holesky',
 };
 class ContractProvider {
