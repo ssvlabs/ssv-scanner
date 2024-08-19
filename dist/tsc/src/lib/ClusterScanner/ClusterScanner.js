@@ -5,6 +5,7 @@ const tslib_1 = require("tslib");
 const cli_progress_1 = tslib_1.__importDefault(require("cli-progress"));
 const contract_provider_1 = require("../contract.provider");
 const BaseScanner_1 = require("../BaseScanner");
+const utils_1 = require("../../shared/utils");
 class ClusterScanner extends BaseScanner_1.BaseScanner {
     constructor() {
         super(...arguments);
@@ -57,12 +58,12 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
             const genesisBlock = contractProvider.genesisBlock;
             const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
             const filters = {
-                fromBlock: Math.max(latestBlockNumber - step, genesisBlock),
+                fromBlock: (0, utils_1.maxBigIntAndNumber)(latestBlockNumber - BigInt(step), genesisBlock),
                 toBlock: latestBlockNumber,
                 topics: [null, ownerTopic],
             };
             cli && this.progressBar.start(latestBlockNumber, 0);
-            while (!clusterSnapshot && filters.fromBlock >= genesisBlock) {
+            while (!clusterSnapshot && filters.fromBlock >= BigInt(genesisBlock)) {
                 let result;
                 try {
                     result = yield contractProvider.contractCore.getPastEvents('allEvents', filters);
@@ -93,8 +94,8 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                         step = this.DAY;
                     }
                 }
-                filters.fromBlock = filters.toBlock - step;
-                cli && this.progressBar.update(latestBlockNumber - (filters.toBlock - step));
+                filters.fromBlock = filters.toBlock - BigInt(step);
+                cli && this.progressBar.update(latestBlockNumber - (filters.toBlock - BigInt(step)));
             }
             cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
             clusterSnapshot = clusterSnapshot || ['0', '0', '0', true, '0'];

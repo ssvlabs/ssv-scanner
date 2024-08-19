@@ -3,6 +3,7 @@ import cliProgress from 'cli-progress';
 import { ContractProvider } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
+import { minBigInts } from '../../shared/utils';
 
 export class NonceScanner extends BaseScanner {
   protected eventsList = [
@@ -44,7 +45,7 @@ export class NonceScanner extends BaseScanner {
     const genesisBlock = contractProvider.genesisBlock;
     const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
-      fromBlock: genesisBlock,
+      fromBlock: BigInt(genesisBlock),
       toBlock: latestBlockNumber,
       topics: [null, ownerTopic],
     };
@@ -57,7 +58,7 @@ export class NonceScanner extends BaseScanner {
           (await contractProvider.contractCore.getPastEvents('AllEvents', filters))
           .filter((item: any) => this.eventsList.includes(item.event));
         latestNonce += result.length;
-        filters.fromBlock = filters.toBlock + 1;
+        filters.fromBlock = filters.toBlock + BigInt(1);
       } catch (e: any) {
         if (step === this.MONTH) {
           step = this.WEEK;
@@ -67,7 +68,7 @@ export class NonceScanner extends BaseScanner {
           throw new Error(e);
         }
       }
-      filters.toBlock = Math.min(filters.fromBlock + step, latestBlockNumber);
+      filters.toBlock = minBigInts(filters.fromBlock + BigInt(step), latestBlockNumber);
       cli && this.progressBar.update(filters.toBlock);
     } while (filters.toBlock - filters.fromBlock > 0);
 

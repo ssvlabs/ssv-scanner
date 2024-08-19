@@ -5,6 +5,7 @@ const tslib_1 = require("tslib");
 const cli_progress_1 = tslib_1.__importDefault(require("cli-progress"));
 const contract_provider_1 = require("../contract.provider");
 const BaseScanner_1 = require("../BaseScanner");
+const utils_1 = require("../../shared/utils");
 class NonceScanner extends BaseScanner_1.BaseScanner {
     constructor() {
         super(...arguments);
@@ -50,7 +51,7 @@ class NonceScanner extends BaseScanner_1.BaseScanner {
             const genesisBlock = contractProvider.genesisBlock;
             const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
             const filters = {
-                fromBlock: genesisBlock,
+                fromBlock: BigInt(genesisBlock),
                 toBlock: latestBlockNumber,
                 topics: [null, ownerTopic],
             };
@@ -62,7 +63,7 @@ class NonceScanner extends BaseScanner_1.BaseScanner {
                         (yield contractProvider.contractCore.getPastEvents('AllEvents', filters))
                             .filter((item) => this.eventsList.includes(item.event));
                     latestNonce += result.length;
-                    filters.fromBlock = filters.toBlock + 1;
+                    filters.fromBlock = filters.toBlock + BigInt(1);
                 }
                 catch (e) {
                     if (step === this.MONTH) {
@@ -75,7 +76,7 @@ class NonceScanner extends BaseScanner_1.BaseScanner {
                         throw new Error(e);
                     }
                 }
-                filters.toBlock = Math.min(filters.fromBlock + step, latestBlockNumber);
+                filters.toBlock = (0, utils_1.minBigInts)(filters.fromBlock + BigInt(step), latestBlockNumber);
                 cli && this.progressBar.update(filters.toBlock);
             } while (filters.toBlock - filters.fromBlock > 0);
             cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);

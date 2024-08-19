@@ -2,6 +2,7 @@ import cliProgress from 'cli-progress';
 import { ContractProvider } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
+import { maxBigIntAndNumber } from '../../shared/utils';
 
 export interface IData {
   payload: any;
@@ -57,13 +58,13 @@ export class ClusterScanner extends BaseScanner {
     const genesisBlock = contractProvider.genesisBlock;
     const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
-      fromBlock: Math.max(latestBlockNumber - step, genesisBlock),
+      fromBlock: maxBigIntAndNumber(latestBlockNumber - BigInt(step), genesisBlock),
       toBlock: latestBlockNumber,
       topics: [null, ownerTopic],
     };
 
     cli && this.progressBar.start(latestBlockNumber, 0);
-    while (!clusterSnapshot && filters.fromBlock >= genesisBlock) {
+    while (!clusterSnapshot && filters.fromBlock >= BigInt(genesisBlock)) {
       let result: any;
       try {
         result = await contractProvider.contractCore.getPastEvents('allEvents', filters);
@@ -92,8 +93,8 @@ export class ClusterScanner extends BaseScanner {
           step = this.DAY;
         }
       }
-      filters.fromBlock = filters.toBlock - step;
-      cli && this.progressBar.update(latestBlockNumber - (filters.toBlock - step));
+      filters.fromBlock = filters.toBlock - BigInt(step);
+      cli && this.progressBar.update(latestBlockNumber - (filters.toBlock - BigInt(step)));
     }
     cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
 
