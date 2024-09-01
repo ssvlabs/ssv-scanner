@@ -7,7 +7,7 @@ const process = tslib_1.__importStar(require("process"));
 const argparse_1 = require("argparse");
 const NonceCommand_1 = require("./commands/NonceCommand");
 const ClusterCommand_1 = require("./commands/ClusterCommand");
-const FigletMessage = (message) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
+const FigletMessage = async (message) => {
     return new Promise(resolve => {
         (0, figlet_1.default)(message, (error, output) => {
             if (error) {
@@ -16,51 +16,49 @@ const FigletMessage = (message) => tslib_1.__awaiter(void 0, void 0, void 0, fun
             resolve(output);
         });
     });
-});
-function main() {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        const messageText = `SSV Scanner v${package_json_1.default.version}`;
-        const message = yield FigletMessage(messageText);
-        if (message) {
-            console.log(' -----------------------------------------------------------------------------------');
-            console.log(`${message || messageText}`);
-            console.log(' -----------------------------------------------------------------------------------');
-            for (const str of String(package_json_1.default.description).match(/.{1,75}/g) || []) {
-                console.log(` ${str}`);
-            }
-            console.log(' -----------------------------------------------------------------------------------\n');
+};
+async function main() {
+    const messageText = `SSV Scanner v${package_json_1.default.version}`;
+    const message = await FigletMessage(messageText);
+    if (message) {
+        console.log(' -----------------------------------------------------------------------------------');
+        console.log(`${message || messageText}`);
+        console.log(' -----------------------------------------------------------------------------------');
+        for (const str of String(package_json_1.default.description).match(/.{1,75}/g) || []) {
+            console.log(` ${str}`);
         }
-        const rootParser = new argparse_1.ArgumentParser();
-        const subParsers = rootParser.add_subparsers({ title: 'commands', dest: 'command' });
-        const clusterCommand = new ClusterCommand_1.ClusterCommand();
-        const nonceCommand = new NonceCommand_1.NonceCommand();
-        const clusterCommandParser = subParsers.add_parser(clusterCommand.name, { add_help: true });
-        const nonceCommandParser = subParsers.add_parser(nonceCommand.name, { add_help: true });
-        let command = '';
-        const args = process.argv.slice(2); // Skip node and script name
-        if (args[1] && args[1].includes('--help')) {
-            clusterCommand.setArguments(clusterCommandParser);
-            nonceCommand.setArguments(nonceCommandParser);
-            rootParser.parse_args(); // Print help and exit
-        }
-        else {
-            let args = rootParser.parse_known_args();
-            command = args[0]['command'];
-            clusterCommand.setArguments(clusterCommandParser);
-            nonceCommand.setArguments(nonceCommandParser);
-        }
-        switch (command) {
-            case clusterCommand.name:
-                yield clusterCommand.run(clusterCommand.parse(args));
-                break;
-            case nonceCommand.name:
-                yield nonceCommand.run(nonceCommand.parse(args));
-                break;
-            default:
-                console.error('Command not found');
-                process.exit(1);
-        }
-    });
+        console.log(' -----------------------------------------------------------------------------------\n');
+    }
+    const rootParser = new argparse_1.ArgumentParser();
+    const subParsers = rootParser.add_subparsers({ title: 'commands', dest: 'command' });
+    const clusterCommand = new ClusterCommand_1.ClusterCommand();
+    const nonceCommand = new NonceCommand_1.NonceCommand();
+    const clusterCommandParser = subParsers.add_parser(clusterCommand.name, { add_help: true });
+    const nonceCommandParser = subParsers.add_parser(nonceCommand.name, { add_help: true });
+    let command = '';
+    const args = process.argv.slice(2); // Skip node and script name
+    if (args[1] && args[1].includes('--help')) {
+        clusterCommand.setArguments(clusterCommandParser);
+        nonceCommand.setArguments(nonceCommandParser);
+        rootParser.parse_args(); // Print help and exit
+    }
+    else {
+        let args = rootParser.parse_known_args();
+        command = args[0]['command'];
+        clusterCommand.setArguments(clusterCommandParser);
+        nonceCommand.setArguments(nonceCommandParser);
+    }
+    switch (command) {
+        case clusterCommand.name:
+            await clusterCommand.run(clusterCommand.parse(args));
+            break;
+        case nonceCommand.name:
+            await nonceCommand.run(nonceCommand.parse(args));
+            break;
+        default:
+            console.error('Command not found');
+            process.exit(1);
+    }
 }
 exports.default = main;
 //# sourceMappingURL=cli-shared.js.map

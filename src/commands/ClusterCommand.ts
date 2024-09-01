@@ -48,7 +48,7 @@ export class ClusterCommand extends Command {
         'block': result.payload.Block,
         'cluster snapshot': result.cluster,
         'cluster': Object.values(result.cluster)
-      }, null, '  '));
+      }, (_, v) => typeof v === 'bigint' ? v.toString() : v, '  '));
     } catch (e: any) {
       console.error('\x1b[31m', e.message);
     }

@@ -3,7 +3,6 @@ import cliProgress from 'cli-progress';
 import { ContractProvider } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
-import { minBigInts } from '../../shared/utils';
 
 export class NonceScanner extends BaseScanner {
   protected eventsList = [
@@ -45,20 +44,20 @@ export class NonceScanner extends BaseScanner {
     const genesisBlock = contractProvider.genesisBlock;
     const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
-      fromBlock: BigInt(genesisBlock),
-      toBlock: latestBlockNumber,
+      fromBlock: genesisBlock,
+      toBlock: Number(latestBlockNumber),
       topics: [null, ownerTopic],
     };
 
-    cli && this.progressBar.start(latestBlockNumber, 0);
+    cli && this.progressBar.start(Number(latestBlockNumber), 0);
     do {
       let result: any;
       try {
         result =
-          (await contractProvider.contractCore.getPastEvents('AllEvents', filters))
+          (await contractProvider.contractCore.getPastEvents('allEvents', filters))
           .filter((item: any) => this.eventsList.includes(item.event));
         latestNonce += result.length;
-        filters.fromBlock = filters.toBlock + BigInt(1);
+        filters.fromBlock = filters.toBlock + 1;
       } catch (e: any) {
         if (step === this.MONTH) {
           step = this.WEEK;
@@ -68,11 +67,11 @@ export class NonceScanner extends BaseScanner {
           throw new Error(e);
         }
       }
-      filters.toBlock = minBigInts(filters.fromBlock + BigInt(step), latestBlockNumber);
+      filters.toBlock = Math.min(filters.fromBlock + step, Number(latestBlockNumber));
       cli && this.progressBar.update(filters.toBlock);
     } while (filters.toBlock - filters.fromBlock > 0);
 
-    cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
+    cli && this.progressBar.update(Number(latestBlockNumber), Number(latestBlockNumber));
 
     return latestNonce;
   }
