@@ -59,14 +59,8 @@ class ContractProvider {
     get abiCore() {
         return this.contract.abi;
     }
-    get abiViews() {
-        return this.contract.abiViews;
-    }
     get contractCore() {
         return new this.web3.eth.Contract(this.abiCore, this.contract.address);
-    }
-    get contractViews() {
-        return new this.web3.eth.Contract(this.abiViews, this.contract.addressViews);
     }
     get genesisBlock() {
         return this.contract.genesisBlock;

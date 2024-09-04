@@ -1,6 +1,5 @@
 import Web3 from 'web3';
 
-export type NetworkName = string;
 export type ContractAddress = string;
 export type ContractData = {
   version: string;
@@ -93,19 +92,8 @@ export class ContractProvider {
     return this.contract.abi as any;
   }
 
-  get abiViews() {
-    return this.contract.abiViews as any;
-  }
-
   get contractCore() {
     return new this.web3.eth.Contract(this.abiCore, this.contract.address);
-  }
-
-  get contractViews() {
-    return new this.web3.eth.Contract(
-      this.abiViews,
-      this.contract.addressViews,
-    );
   }
 
   get genesisBlock() {

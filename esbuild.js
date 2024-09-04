@@ -8,7 +8,7 @@ const options = {
   entryPoints: [
     "src/cli.ts"
   ],
-  platform: 'browser',
+  platform: 'node',
   minify: true,
   bundle: true,
   outfile: "dist/esbuild/cli.js",

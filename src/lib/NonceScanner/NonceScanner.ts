@@ -45,16 +45,16 @@ export class NonceScanner extends BaseScanner {
     const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
       fromBlock: genesisBlock,
-      toBlock: latestBlockNumber,
+      toBlock: Number(latestBlockNumber),
       topics: [null, ownerTopic],
     };
 
-    cli && this.progressBar.start(latestBlockNumber, 0);
+    cli && this.progressBar.start(Number(latestBlockNumber), 0);
     do {
       let result: any;
       try {
         result =
-          (await contractProvider.contractCore.getPastEvents('AllEvents', filters))
+          (await contractProvider.contractCore.getPastEvents('allEvents', filters))
           .filter((item: any) => this.eventsList.includes(item.event));
         latestNonce += result.length;
         filters.fromBlock = filters.toBlock + 1;
@@ -67,11 +67,11 @@ export class NonceScanner extends BaseScanner {
           throw new Error(e);
         }
       }
-      filters.toBlock = Math.min(filters.fromBlock + step, latestBlockNumber);
+      filters.toBlock = Math.min(filters.fromBlock + step, Number(latestBlockNumber));
       cli && this.progressBar.update(filters.toBlock);
     } while (filters.toBlock - filters.fromBlock > 0);
 
-    cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
+    cli && this.progressBar.update(Number(latestBlockNumber), Number(latestBlockNumber));
 
     return latestNonce;
   }

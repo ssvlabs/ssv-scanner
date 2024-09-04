@@ -12,75 +12,71 @@ class NonceScanner extends BaseScanner_1.BaseScanner {
             'ValidatorAdded',
         ];
     }
-    run(cli) {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            if (cli) {
-                console.log('\nScanning blockchain...');
-                this.progressBar = new cli_progress_1.default.SingleBar({}, cli_progress_1.default.Presets.shades_classic);
-            }
+    async run(cli) {
+        if (cli) {
+            console.log('\nScanning blockchain...');
+            this.progressBar = new cli_progress_1.default.SingleBar({}, cli_progress_1.default.Presets.shades_classic);
+        }
+        try {
+            const data = await this._getLatestNonce(cli);
+            cli && this.progressBar.stop();
+            return data;
+        }
+        catch (e) {
+            cli && this.progressBar.stop();
+            throw new Error(e);
+        }
+    }
+    async _getLatestNonce(cli) {
+        const contractProvider = new contract_provider_1.ContractProvider(this.params.network, this.params.nodeUrl);
+        let latestBlockNumber;
+        try {
+            latestBlockNumber = await contractProvider.web3.eth.getBlockNumber();
+        }
+        catch (err) {
+            throw new Error('Could not access the provided node endpoint.');
+        }
+        try {
+            await contractProvider.contractCore.methods.owner().call();
+        }
+        catch (err) {
+            throw new Error('Could not find any cluster snapshot from the provided contract address.');
+        }
+        let step = this.MONTH;
+        let latestNonce = 0;
+        const genesisBlock = contractProvider.genesisBlock;
+        const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
+        const filters = {
+            fromBlock: genesisBlock,
+            toBlock: Number(latestBlockNumber),
+            topics: [null, ownerTopic],
+        };
+        cli && this.progressBar.start(Number(latestBlockNumber), 0);
+        do {
+            let result;
             try {
-                const data = yield this._getLatestNonce(cli);
-                cli && this.progressBar.stop();
-                return data;
+                result =
+                    (await contractProvider.contractCore.getPastEvents('allEvents', filters))
+                        .filter((item) => this.eventsList.includes(item.event));
+                latestNonce += result.length;
+                filters.fromBlock = filters.toBlock + 1;
             }
             catch (e) {
-                cli && this.progressBar.stop();
-                throw new Error(e);
-            }
-        });
-    }
-    _getLatestNonce(cli) {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const contractProvider = new contract_provider_1.ContractProvider(this.params.network, this.params.nodeUrl);
-            let latestBlockNumber;
-            try {
-                latestBlockNumber = yield contractProvider.web3.eth.getBlockNumber();
-            }
-            catch (err) {
-                throw new Error('Could not access the provided node endpoint.');
-            }
-            try {
-                yield contractProvider.contractCore.methods.owner().call();
-            }
-            catch (err) {
-                throw new Error('Could not find any cluster snapshot from the provided contract address.');
-            }
-            let step = this.MONTH;
-            let latestNonce = 0;
-            const genesisBlock = contractProvider.genesisBlock;
-            const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
-            const filters = {
-                fromBlock: genesisBlock,
-                toBlock: latestBlockNumber,
-                topics: [null, ownerTopic],
-            };
-            cli && this.progressBar.start(latestBlockNumber, 0);
-            do {
-                let result;
-                try {
-                    result =
-                        (yield contractProvider.contractCore.getPastEvents('AllEvents', filters))
-                            .filter((item) => this.eventsList.includes(item.event));
-                    latestNonce += result.length;
-                    filters.fromBlock = filters.toBlock + 1;
+                if (step === this.MONTH) {
+                    step = this.WEEK;
                 }
-                catch (e) {
-                    if (step === this.MONTH) {
-                        step = this.WEEK;
-                    }
-                    else if (step === this.WEEK) {
-                        step = this.DAY;
-                    }
-                    else {
-                        throw new Error(e);
-                    }
+                else if (step === this.WEEK) {
+                    step = this.DAY;
                 }
-                filters.toBlock = Math.min(filters.fromBlock + step, latestBlockNumber);
-                cli && this.progressBar.update(filters.toBlock);
-            } while (filters.toBlock - filters.fromBlock > 0);
-            cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
-            return latestNonce;
-        });
+                else {
+                    throw new Error(e);
+                }
+            }
+            filters.toBlock = Math.min(filters.fromBlock + step, Number(latestBlockNumber));
+            cli && this.progressBar.update(filters.toBlock);
+        } while (filters.toBlock - filters.fromBlock > 0);
+        cli && this.progressBar.update(Number(latestBlockNumber), Number(latestBlockNumber));
+        return latestNonce;
     }
 }
 exports.NonceScanner = NonceScanner;

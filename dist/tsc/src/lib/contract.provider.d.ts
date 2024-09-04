@@ -1,5 +1,4 @@
 import Web3 from 'web3';
-export type NetworkName = string;
 export type ContractAddress = string;
 export type ContractData = {
     version: string;
@@ -22,8 +21,6 @@ export declare class ContractProvider {
     constructor(networkAndEnv: string, nodeUrl: string);
     get contractAddress(): string;
     get abiCore(): any;
-    get abiViews(): any;
-    get contractCore(): import("web3-eth-contract").Contract;
-    get contractViews(): import("web3-eth-contract").Contract;
+    get contractCore(): import("web3").Contract<any>;
     get genesisBlock(): number;
 }

@@ -8,6 +8,14 @@ export interface IData {
   cluster: any;
 }
 
+interface CLusterSnapshot {
+  validatorCount: bigint;
+  networkFeeIndex: bigint;
+  index: bigint;
+  active: boolean;
+  balance: bigint;
+}
+
 export class ClusterScanner extends BaseScanner {
   protected eventsList = [
     'ClusterDeposited',
@@ -50,37 +58,37 @@ export class ClusterScanner extends BaseScanner {
       throw new Error('Could not find any cluster snapshot from the provided contract address: ' + err);
     }
     let step = this.MONTH;
-    let clusterSnapshot;
+    let clusterSnapshot: CLusterSnapshot | undefined;
     let biggestBlockNumber = 0;
     let transactionIndex = 0;
 
     const genesisBlock = contractProvider.genesisBlock;
     const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
     const filters = {
-      fromBlock: Math.max(latestBlockNumber - step, genesisBlock),
-      toBlock: latestBlockNumber,
+      fromBlock: Math.max(Number(latestBlockNumber) - step, genesisBlock),
+      toBlock: Number(latestBlockNumber),
       topics: [null, ownerTopic],
     };
 
-    cli && this.progressBar.start(latestBlockNumber, 0);
+    cli && this.progressBar.start(Number(latestBlockNumber), 0);
     while (!clusterSnapshot && filters.fromBlock >= genesisBlock) {
       let result: any;
       try {
         result = await contractProvider.contractCore.getPastEvents('allEvents', filters);
         result
           .filter((item: any) => this.eventsList.includes(item.event))
-          .filter((item: any) => JSON.stringify(item.returnValues.operatorIds.map((value: any) => +value)) === JSON.stringify(operatorIds))
-          .sort((a: any, b: any) => a.blockNumber - b.blockNumber)  // Sort by blockNumber in ascending order
+          .filter((item: any) => JSON.stringify(item.returnValues.operatorIds.map((value: any) => Number(value))) === JSON.stringify(operatorIds))
+          .sort((a: any, b: any) => Number(a.blockNumber) - Number(b.blockNumber))  // Sort by blockNumber in ascending order
           .forEach((item: any) => {
             if (item.blockNumber >= biggestBlockNumber) {
               const previousBlockNumber = biggestBlockNumber;
-              biggestBlockNumber = item.blockNumber;
+              biggestBlockNumber = Number(item.blockNumber);
               // same block number case to compare transactionIndex in block
               if (previousBlockNumber === item.blockNumber && item.transactionIndex < transactionIndex) {
                 return;
               }
               transactionIndex = item.transactionIndex; // to use only for the case multiple events in one block number
-              clusterSnapshot = item.returnValues.cluster;
+              clusterSnapshot = item.returnValues.cluster as CLusterSnapshot;
             }
           });
         filters.toBlock = filters.fromBlock;
@@ -93,24 +101,30 @@ export class ClusterScanner extends BaseScanner {
         }
       }
       filters.fromBlock = filters.toBlock - step;
-      cli && this.progressBar.update(latestBlockNumber - (filters.toBlock - step));
+      cli && this.progressBar.update(Number(latestBlockNumber) - (filters.toBlock - step));
     }
-    cli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
+    cli && this.progressBar.update(Number(latestBlockNumber), Number(latestBlockNumber));
 
-    clusterSnapshot = clusterSnapshot || ['0', '0', '0', true, '0'];
+    const clusterSnapshotPrint = clusterSnapshot ? [
+      clusterSnapshot.validatorCount,
+      clusterSnapshot.networkFeeIndex,
+      clusterSnapshot.index,
+      clusterSnapshot.active,
+      clusterSnapshot.balance
+    ] : ['0', '0', '0', true, '0'];
     return {
       payload: {
         'Owner': this.params.ownerAddress,
         'Operators': operatorIds.sort((a: number, b: number) => a - b).join(','),
-        'Block': biggestBlockNumber || latestBlockNumber,
-        'Data': clusterSnapshot.join(','),
+        'Block': biggestBlockNumber || Number(latestBlockNumber),
+        'Data': clusterSnapshotPrint.join(',')
       },
       cluster: {
-        validatorCount: clusterSnapshot[0],
-        networkFeeIndex: clusterSnapshot[1],
-        index: clusterSnapshot[2],
-        active: clusterSnapshot[3],
-        balance: clusterSnapshot[4],
+        validatorCount: clusterSnapshotPrint[0],
+        networkFeeIndex: clusterSnapshotPrint[1],
+        index: clusterSnapshotPrint[2],
+        active: clusterSnapshotPrint[3],
+        balance: clusterSnapshotPrint[4]
       }
     };
   }

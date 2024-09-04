@@ -18,7 +18,7 @@
         "ssv-keys": "./dist/tsc/src/cli.js"
     },
     "engines": {
-        "node": ">=12"
+        "node": ">=18"
     },
     "scripts": {
         "dev:cli": "ts-node src/cli.ts",
@@ -48,7 +48,7 @@
         "argparse": "^2.0.1",
         "cli-progress": "^3.11.2",
         "figlet": "^1.5.2",
-        "web3": "^1.10.0"
+        "web3": "^4.11.1"
     },
     "licenses": [
         {
