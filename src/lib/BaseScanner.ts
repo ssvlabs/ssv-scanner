@@ -31,6 +31,6 @@ export abstract class BaseScanner {
     }
     this.params = scannerParams;
     // convert to checksum addresses
-    this.params.ownerAddress = ethers.utils.getAddress(this.params.ownerAddress);
+    this.params.ownerAddress = ethers.getAddress(this.params.ownerAddress);
   }
 }

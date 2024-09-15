@@ -47,7 +47,7 @@
     "@types/figlet": "^1.5.4",
     "argparse": "^2.0.1",
     "cli-progress": "^3.11.2",
-    "ethers": "^5.7.2",
+    "ethers": "^6.13.2",
     "figlet": "^1.5.2"
   },
   "licenses": [

@@ -28,9 +28,10 @@ export class ClusterScanner extends BaseScanner {
   }
 
   private async _getClusterSnapshot(operatorIds: number[], isCli?: boolean): Promise<IData> {
-    const { contractAddress, abi, genesisBlock } = getContractSettings(this.params.network)
+    const { contractAddress, abi, genesisBlock } = getContractSettings(this.params.network);
+    console.log(this.params.ownerAddress);
     let latestBlockNumber;
-    const provider = new ethers.providers.JsonRpcProvider(this.params.nodeUrl);
+    const provider = new ethers.JsonRpcProvider(this.params.nodeUrl);
 
     try {
       latestBlockNumber = await provider.getBlockNumber();
@@ -68,11 +69,7 @@ export class ClusterScanner extends BaseScanner {
       const endBlock = Math.max(startBlock - step + 1, genesisBlock)
       try {
         for (const filter of filters) {
-          const logs = await provider.getLogs({
-            ...filter,
-            fromBlock: endBlock,
-            toBlock: startBlock
-          });
+          const logs = await contract.queryFilter(filter, endBlock, startBlock);
 
           logs
             .map(log => ({

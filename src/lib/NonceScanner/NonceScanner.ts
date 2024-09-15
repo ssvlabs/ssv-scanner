@@ -22,7 +22,7 @@ export class NonceScanner extends BaseScanner {
 
   async _getValidatorAddedEventCount(isCli?: boolean): Promise<number> {
     const { contractAddress, abi, genesisBlock } = getContractSettings(this.params.network)
-    const provider = new ethers.providers.JsonRpcProvider(this.params.nodeUrl);
+    const provider = new ethers.JsonRpcProvider(this.params.nodeUrl);
     const contract = new ethers.Contract(contractAddress, abi, provider);
 
     let latestBlockNumber;
@@ -47,7 +47,7 @@ export class NonceScanner extends BaseScanner {
     for (let startBlock = genesisBlock; startBlock <= latestBlockNumber; startBlock += blockStep) {
       try {
         const endBlock = Math.min(startBlock + blockStep - 1, latestBlockNumber);
-        const logs = await provider.getLogs({...filter, fromBlock: startBlock, toBlock: endBlock});
+        const logs = await contract.queryFilter(filter, startBlock, endBlock);
 
         totalEventCount += logs.length;
         isCli && this.progressBar.update(endBlock);
