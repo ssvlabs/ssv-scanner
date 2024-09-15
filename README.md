@@ -8,13 +8,12 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/bloxapp/ssv-scanner)
 
 ![GitHub package.json dynamic](https://img.shields.io/github/package-json/keywords/bloxapp/ssv-scanner)
-![GitHub package.json dynamic](https://img.shields.io/github/package-json/author/bloxapp/ssv-scanner)
 
 ![Discord](https://img.shields.io/discord/723834989506068561?style=for-the-badge&label=Ask%20for%20support&logo=discord&logoColor=white)
 
 Important dependencies:
 
-* ![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/bloxapp/ssv-scanner/web3?style=social)
+* ![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ssvlabs/ssv-scanner/ethersjs?style=social)
 
 ---
 

@@ -1,78 +1,68 @@
-
+import { ethers } from 'ethers';
 import cliProgress from 'cli-progress';
-import { ContractProvider } from '../contract.provider';
+import { getContractSettings } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
 
 export class NonceScanner extends BaseScanner {
-  protected eventsList = [
-    'ValidatorAdded',
-  ];
-
-  async run(cli?: boolean): Promise<number> {
-    if (cli) {
+  async run(isCli?: boolean): Promise<number> {
+    if (isCli) {
       console.log('\nScanning blockchain...');
       this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     }
     try {
-      const data = await this._getLatestNonce(cli);
-      cli && this.progressBar.stop();
+      const data = await this._getValidatorAddedEventCount(isCli);
+      isCli && this.progressBar.stop();
       return data;
     } catch (e: any) {
-      cli && this.progressBar.stop();
+      isCli && this.progressBar.stop();
       throw new Error(e);
     }
   }
 
-  private async _getLatestNonce(cli?: boolean): Promise<number> {
-    const contractProvider = new ContractProvider(this.params.network, this.params.nodeUrl);
+  async _getValidatorAddedEventCount(isCli?: boolean): Promise<number> {
+    const { contractAddress, abi, genesisBlock } = getContractSettings(this.params.network)
+    const provider = new ethers.providers.JsonRpcProvider(this.params.nodeUrl);
+    const contract = new ethers.Contract(contractAddress, abi, provider);
 
     let latestBlockNumber;
     try {
-      latestBlockNumber = await contractProvider.web3.eth.getBlockNumber();
+      latestBlockNumber = await provider.getBlockNumber();
     } catch (err) {
       throw new Error('Could not access the provided node endpoint.');
     }
+
     try {
-      await contractProvider.contractCore.methods.owner().call();
+      await contract.owner();
     } catch (err) {
       throw new Error('Could not find any cluster snapshot from the provided contract address.');
     }
-    let step = this.MONTH;
-    let latestNonce = 0;
 
-    const genesisBlock = contractProvider.genesisBlock;
-    const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
-    const filters = {
-      fromBlock: genesisBlock,
-      toBlock: Number(latestBlockNumber),
-      topics: [null, ownerTopic],
-    };
+    let totalEventCount = 0;
+    let blockStep = this.MONTH;
 
-    cli && this.progressBar.start(Number(latestBlockNumber), 0);
-    do {
-      let result: any;
+    isCli && this.progressBar.start(Number(latestBlockNumber), 0);
+    const filter = contract.filters.ValidatorAdded(this.params.ownerAddress);
+
+    for (let startBlock = genesisBlock; startBlock <= latestBlockNumber; startBlock += blockStep) {
       try {
-        result =
-          (await contractProvider.contractCore.getPastEvents('allEvents', filters))
-          .filter((item: any) => this.eventsList.includes(item.event));
-        latestNonce += result.length;
-        filters.fromBlock = filters.toBlock + 1;
-      } catch (e: any) {
-        if (step === this.MONTH) {
-          step = this.WEEK;
-        } else if (step === this.WEEK) {
-          step = this.DAY;
+        const endBlock = Math.min(startBlock + blockStep - 1, latestBlockNumber);
+        const logs = await provider.getLogs({...filter, fromBlock: startBlock, toBlock: endBlock});
+
+        totalEventCount += logs.length;
+        isCli && this.progressBar.update(endBlock);
+      } catch (error: any) {
+        if (blockStep === this.MONTH) {
+          blockStep = this.WEEK;
+        } else if (blockStep === this.WEEK) {
+          blockStep = this.DAY;
         } else {
-          throw new Error(e);
+          throw new Error(error);
         }
       }
-      filters.toBlock = Math.min(filters.fromBlock + step, Number(latestBlockNumber));
-      cli && this.progressBar.update(filters.toBlock);
-    } while (filters.toBlock - filters.fromBlock > 0);
+    }
 
-    cli && this.progressBar.update(Number(latestBlockNumber), Number(latestBlockNumber));
-
-    return latestNonce;
+    isCli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
+    return totalEventCount;
   }
 }

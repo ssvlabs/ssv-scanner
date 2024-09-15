@@ -1,5 +1,6 @@
+import { ethers } from 'ethers';
 import cliProgress from 'cli-progress';
-import { ContractProvider } from '../contract.provider';
+import { getContractSettings } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
 
@@ -8,25 +9,8 @@ export interface IData {
   cluster: any;
 }
 
-interface CLusterSnapshot {
-  validatorCount: bigint;
-  networkFeeIndex: bigint;
-  index: bigint;
-  active: boolean;
-  balance: bigint;
-}
-
 export class ClusterScanner extends BaseScanner {
-  protected eventsList = [
-    'ClusterDeposited',
-    'ClusterWithdrawn',
-    'ValidatorRemoved',
-    'ValidatorAdded',
-    'ClusterLiquidated',
-    'ClusterReactivated',
-  ]
-
-  async run(operatorIds: number[], cli?: boolean): Promise<IData> {
+  async run(operatorIds: number[], isCli?: boolean): Promise<IData> {
     const validOperatorIds = Array.isArray(operatorIds) && this._isValidOperatorIds(operatorIds.length);
     if (!validOperatorIds) {
       throw Error('Comma-separated list of operator IDs. The amount must be 3f+1 compatible.');
@@ -34,64 +18,86 @@ export class ClusterScanner extends BaseScanner {
 
     operatorIds = [...operatorIds].sort((a: number, b: number) => a - b);
 
-    if (cli) {
+    if (isCli) {
       console.log('\nScanning blockchain...');
       this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     }
-    const data: IData = await this._getClusterSnapshot(operatorIds, cli);
-    cli && this.progressBar.stop();
+    const data: IData = await this._getClusterSnapshot(operatorIds, isCli);
+    isCli && this.progressBar.stop();
     return data;
   }
 
-  private async _getClusterSnapshot(operatorIds: number[], cli?: boolean): Promise<IData> {
+  private async _getClusterSnapshot(operatorIds: number[], isCli?: boolean): Promise<IData> {
+    const { contractAddress, abi, genesisBlock } = getContractSettings(this.params.network)
     let latestBlockNumber;
-    const contractProvider = new ContractProvider(this.params.network, this.params.nodeUrl);
+    const provider = new ethers.providers.JsonRpcProvider(this.params.nodeUrl);
+
     try {
-      latestBlockNumber = await contractProvider.web3.eth.getBlockNumber();
+      latestBlockNumber = await provider.getBlockNumber();
     } catch (err) {
       throw new Error('Could not access the provided node endpoint: ' + err);
     }
+
+    const contract = new ethers.Contract(contractAddress, abi, provider);
+
     try {
-      await contractProvider.contractCore.methods.owner().call();
-      // HERE we can validate the contract owner address
+      await contract.owner();
     } catch (err) {
       throw new Error('Could not find any cluster snapshot from the provided contract address: ' + err);
     }
+
     let step = this.MONTH;
-    let clusterSnapshot: CLusterSnapshot | undefined;
+    let clusterSnapshot;
     let biggestBlockNumber = 0;
     let transactionIndex = 0;
 
-    const genesisBlock = contractProvider.genesisBlock;
-    const ownerTopic = contractProvider.web3.eth.abi.encodeParameter('address', this.params.ownerAddress);
-    const filters = {
-      fromBlock: Math.max(Number(latestBlockNumber) - step, genesisBlock),
-      toBlock: Number(latestBlockNumber),
-      topics: [null, ownerTopic],
-    };
+    const filters = [
+      contract.filters.ClusterDeposited(this.params.ownerAddress),
+      contract.filters.ClusterWithdrawn(this.params.ownerAddress),
+      contract.filters.ValidatorRemoved(this.params.ownerAddress),
+      contract.filters.ValidatorAdded(this.params.ownerAddress),
+      contract.filters.ClusterLiquidated(this.params.ownerAddress),
+      contract.filters.ClusterReactivated(this.params.ownerAddress)
+    ];
 
-    cli && this.progressBar.start(Number(latestBlockNumber), 0);
-    while (!clusterSnapshot && filters.fromBlock >= genesisBlock) {
-      let result: any;
+    isCli && this.progressBar.start(latestBlockNumber, 0);
+
+    const operatorIdsAsString = JSON.stringify(operatorIds);
+
+    for (let startBlock = latestBlockNumber; startBlock > genesisBlock && !clusterSnapshot; startBlock -= step) {
+      const endBlock = Math.max(startBlock - step + 1, genesisBlock)
       try {
-        result = await contractProvider.contractCore.getPastEvents('allEvents', filters);
-        result
-          .filter((item: any) => this.eventsList.includes(item.event))
-          .filter((item: any) => JSON.stringify(item.returnValues.operatorIds.map((value: any) => Number(value))) === JSON.stringify(operatorIds))
-          .sort((a: any, b: any) => Number(a.blockNumber) - Number(b.blockNumber))  // Sort by blockNumber in ascending order
-          .forEach((item: any) => {
-            if (item.blockNumber >= biggestBlockNumber) {
-              const previousBlockNumber = biggestBlockNumber;
-              biggestBlockNumber = Number(item.blockNumber);
-              // same block number case to compare transactionIndex in block
-              if (previousBlockNumber === item.blockNumber && item.transactionIndex < transactionIndex) {
-                return;
-              }
-              transactionIndex = item.transactionIndex; // to use only for the case multiple events in one block number
-              clusterSnapshot = item.returnValues.cluster as CLusterSnapshot;
-            }
+        for (const filter of filters) {
+          const logs = await provider.getLogs({
+            ...filter,
+            fromBlock: endBlock,
+            toBlock: startBlock
           });
-        filters.toBlock = filters.fromBlock;
+
+          logs
+            .map(log => ({
+              event: contract.interface.parseLog(log),
+              blockNumber: log.blockNumber,
+              transactionIndex: log.transactionIndex
+            }))
+            .filter((parsedLog) =>
+              JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId))) !== operatorIdsAsString)
+            )
+            .sort((a, b) => a.blockNumber - b.blockNumber)
+            .forEach((parsedLog: any) => {
+              if (parsedLog.blockNumber >= biggestBlockNumber) {
+                const previousBlockNumber = biggestBlockNumber;
+                biggestBlockNumber = parsedLog.blockNumber;
+
+                if (previousBlockNumber === parsedLog.blockNumber && parsedLog.transactionIndex < transactionIndex) {
+                  return;
+                }
+
+                transactionIndex = parsedLog.transactionIndex;
+                clusterSnapshot = parsedLog.event.args.cluster;
+              }
+            });
+        }
       } catch (e) {
         console.error(e);
         if (step === this.MONTH) {
@@ -100,36 +106,30 @@ export class ClusterScanner extends BaseScanner {
           step = this.DAY;
         }
       }
-      filters.fromBlock = filters.toBlock - step;
-      cli && this.progressBar.update(Number(latestBlockNumber) - (filters.toBlock - step));
-    }
-    cli && this.progressBar.update(Number(latestBlockNumber), Number(latestBlockNumber));
 
-    const clusterSnapshotPrint = clusterSnapshot ? [
-      clusterSnapshot.validatorCount,
-      clusterSnapshot.networkFeeIndex,
-      clusterSnapshot.index,
-      clusterSnapshot.active,
-      clusterSnapshot.balance
-    ] : ['0', '0', '0', true, '0'];
+      isCli && this.progressBar.update(startBlock);
+    }
+
+    isCli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
+    clusterSnapshot = clusterSnapshot || ['0', '0', '0', true, '0'];
     return {
       payload: {
         'Owner': this.params.ownerAddress,
-        'Operators': operatorIds.sort((a: number, b: number) => a - b).join(','),
-        'Block': biggestBlockNumber || Number(latestBlockNumber),
-        'Data': clusterSnapshotPrint.join(',')
+        'Operators': operatorIds.join(','),
+        'Block': biggestBlockNumber || latestBlockNumber,
+        'Data': clusterSnapshot.join(',')
       },
       cluster: {
-        validatorCount: clusterSnapshotPrint[0],
-        networkFeeIndex: clusterSnapshotPrint[1],
-        index: clusterSnapshotPrint[2],
-        active: clusterSnapshotPrint[3],
-        balance: clusterSnapshotPrint[4]
+        validatorCount: clusterSnapshot[0],
+        networkFeeIndex: clusterSnapshot[1].toString(),
+        index: clusterSnapshot[2].toString(),
+        active: clusterSnapshot[3],
+        balance: clusterSnapshot[4].toString()
       }
     };
   }
 
   private _isValidOperatorIds(operatorsLength: number) {
-    return (!(operatorsLength < 4 || operatorsLength > 13 || operatorsLength % 3 != 1));
+    return !(operatorsLength < 4 || operatorsLength > 13 || operatorsLength % 3 != 1);
   }
 }
