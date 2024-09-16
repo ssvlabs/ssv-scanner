@@ -1,6 +1,5 @@
 import { BaseScanner } from '../BaseScanner';
 export declare class NonceScanner extends BaseScanner {
-    protected eventsList: string[];
-    run(cli?: boolean): Promise<number>;
-    private _getLatestNonce;
+    run(isCli?: boolean): Promise<number>;
+    _getValidatorAddedEventCount(isCli?: boolean): Promise<number>;
 }
