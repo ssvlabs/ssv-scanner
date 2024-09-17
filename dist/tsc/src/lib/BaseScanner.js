@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseScanner = void 0;
-const tslib_1 = require("tslib");
-const web3_1 = tslib_1.__importDefault(require("web3"));
+const ethers_1 = require("ethers");
 class BaseScanner {
     constructor(scannerParams) {
         this.DAY = 5400;
@@ -25,7 +24,7 @@ class BaseScanner {
         }
         this.params = scannerParams;
         // convert to checksum addresses
-        this.params.ownerAddress = new web3_1.default().utils.toChecksumAddress(this.params.ownerAddress);
+        this.params.ownerAddress = ethers_1.ethers.getAddress(this.params.ownerAddress);
     }
 }
 exports.BaseScanner = BaseScanner;

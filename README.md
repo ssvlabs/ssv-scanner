@@ -1,20 +1,19 @@
 # SSV Scanner
 
-![GitHub](https://img.shields.io/github/license/bloxapp/ssv-scanner)
-![GitHub package.json version](https://img.shields.io/github/package-json/v/bloxapp/ssv-scanner)
+![GitHub](https://img.shields.io/github/license/ssvlabs/ssv-scanner)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/ssvlabs/ssv-scanner)
 
-![GitHub commit activity](https://img.shields.io/github/commit-activity/y/bloxapp/ssv-scanner)
-![GitHub contributors](https://img.shields.io/github/contributors/bloxapp/ssv-scanner)
-![GitHub last commit](https://img.shields.io/github/last-commit/bloxapp/ssv-scanner)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/ssvlabs/ssv-scanner)
+![GitHub contributors](https://img.shields.io/github/contributors/ssvlabs/ssv-scanner)
+![GitHub last commit](https://img.shields.io/github/last-commit/ssvlabs/ssv-scanner)
 
-![GitHub package.json dynamic](https://img.shields.io/github/package-json/keywords/bloxapp/ssv-scanner)
-![GitHub package.json dynamic](https://img.shields.io/github/package-json/author/bloxapp/ssv-scanner)
+![GitHub package.json dynamic](https://img.shields.io/github/package-json/keywords/ssvlabs/ssv-scanner)
 
 ![Discord](https://img.shields.io/discord/723834989506068561?style=for-the-badge&label=Ask%20for%20support&logo=discord&logoColor=white)
 
 Important dependencies:
 
-* ![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/bloxapp/ssv-scanner/web3?style=social)
+* ![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ssvlabs/ssv-scanner/ethersjs?style=social)
 
 ---
 
@@ -32,7 +31,7 @@ You can download it [here](https://nodejs.org/en/download/).
 Once you have installed NodeJS, follow these instructions to prepare the project:
 
 ```bash
-git clone https://github.com/bloxapp/ssv-scanner.git
+git clone https://github.com/ssvlabs/ssv-scanner.git
 cd ssv-scanner
 npm i yarn -g
 yarn
