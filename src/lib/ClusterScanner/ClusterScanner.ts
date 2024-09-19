@@ -29,7 +29,6 @@ export class ClusterScanner extends BaseScanner {
 
   private async _getClusterSnapshot(operatorIds: number[], isCli?: boolean): Promise<IData> {
     const { contractAddress, abi, genesisBlock } = getContractSettings(this.params.network);
-    console.log(this.params.ownerAddress);
     let latestBlockNumber;
     const provider = new ethers.JsonRpcProvider(this.params.nodeUrl);
 
@@ -52,14 +51,7 @@ export class ClusterScanner extends BaseScanner {
     let biggestBlockNumber = 0;
     let transactionIndex = 0;
 
-    const filters = [
-      contract.filters.ClusterDeposited(this.params.ownerAddress),
-      contract.filters.ClusterWithdrawn(this.params.ownerAddress),
-      contract.filters.ValidatorRemoved(this.params.ownerAddress),
-      contract.filters.ValidatorAdded(this.params.ownerAddress),
-      contract.filters.ClusterLiquidated(this.params.ownerAddress),
-      contract.filters.ClusterReactivated(this.params.ownerAddress)
-    ];
+    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
 
     isCli && this.progressBar.start(latestBlockNumber, 0);
 
@@ -68,33 +60,37 @@ export class ClusterScanner extends BaseScanner {
     for (let startBlock = latestBlockNumber; startBlock > genesisBlock && !clusterSnapshot; startBlock -= step) {
       const endBlock = Math.max(startBlock - step + 1, genesisBlock)
       try {
-        for (const filter of filters) {
-          const logs = await contract.queryFilter(filter, endBlock, startBlock);
+        const filter = {
+          address: contractAddress,
+          fromBlock: endBlock,
+          toBlock: startBlock
+        };
+        const logs = await provider.getLogs(filter);
 
-          logs
-            .map(log => ({
-              event: contract.interface.parseLog(log),
-              blockNumber: log.blockNumber,
-              transactionIndex: log.transactionIndex
-            }))
-            .filter((parsedLog) =>
-              JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId))) !== operatorIdsAsString)
-            )
-            .sort((a, b) => a.blockNumber - b.blockNumber)
-            .forEach((parsedLog: any) => {
-              if (parsedLog.blockNumber >= biggestBlockNumber) {
-                const previousBlockNumber = biggestBlockNumber;
-                biggestBlockNumber = parsedLog.blockNumber;
+        logs
+          .map(log => ({
+            event: contract.interface.parseLog(log),
+            blockNumber: log.blockNumber,
+            transactionIndex: log.transactionIndex
+          }))
+          .filter((parsedEvent) => parsedEvent.event && eventsList.includes(parsedEvent.event.name))
+          .filter((parsedLog) =>
+            JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId))) !== operatorIdsAsString)
+          )
+          .sort((a, b) => a.blockNumber - b.blockNumber)
+          .forEach((parsedLog: any) => {
+            if (parsedLog.blockNumber >= biggestBlockNumber) {
+              const previousBlockNumber = biggestBlockNumber;
+              biggestBlockNumber = parsedLog.blockNumber;
 
-                if (previousBlockNumber === parsedLog.blockNumber && parsedLog.transactionIndex < transactionIndex) {
-                  return;
-                }
-
-                transactionIndex = parsedLog.transactionIndex;
-                clusterSnapshot = parsedLog.event.args.cluster;
+              if (previousBlockNumber === parsedLog.blockNumber && parsedLog.transactionIndex < transactionIndex) {
+                return;
               }
-            });
-        }
+
+              transactionIndex = parsedLog.transactionIndex;
+              clusterSnapshot = parsedLog.event.args.cluster;
+            }
+          });
       } catch (e) {
         console.error(e);
         if (step === this.MONTH) {
