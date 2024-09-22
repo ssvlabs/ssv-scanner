@@ -61,7 +61,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                     transactionIndex: log.transactionIndex
                 }))
                     .filter((parsedEvent) => parsedEvent.event && eventsList.includes(parsedEvent.event.name))
-                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId))) !== operatorIdsAsString))
+                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString && parsedLog.event?.args.some((value) => ethers_1.ethers.isAddress(value) && ethers_1.ethers.getAddress(value) === this.params.ownerAddress))
                     .sort((a, b) => a.blockNumber - b.blockNumber)
                     .forEach((parsedLog) => {
                     if (parsedLog.blockNumber >= biggestBlockNumber) {
