@@ -43,8 +43,9 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         let biggestBlockNumber = 0;
         let transactionIndex = 0;
         const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
-        isCli && this.progressBar.start(latestBlockNumber, 0);
+        isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
         const operatorIdsAsString = JSON.stringify(operatorIds);
+        let prevProgressBarState = genesisBlock;
         for (let startBlock = latestBlockNumber; startBlock > genesisBlock && !clusterSnapshot; startBlock -= step) {
             const endBlock = Math.max(startBlock - step + 1, genesisBlock);
             try {
@@ -76,7 +77,6 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 });
             }
             catch (e) {
-                console.error(e);
                 if (step === this.MONTH) {
                     step = this.WEEK;
                     startBlock += this.WEEK;
@@ -86,7 +86,8 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                     startBlock += this.DAY;
                 }
             }
-            isCli && this.progressBar.update(startBlock);
+            prevProgressBarState += step;
+            isCli && this.progressBar.update(prevProgressBarState, latestBlockNumber);
         }
         isCli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
         clusterSnapshot = clusterSnapshot || ['0', '0', '0', true, '0'];
