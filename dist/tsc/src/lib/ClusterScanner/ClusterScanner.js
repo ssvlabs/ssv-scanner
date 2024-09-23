@@ -79,9 +79,11 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 console.error(e);
                 if (step === this.MONTH) {
                     step = this.WEEK;
+                    startBlock += this.WEEK;
                 }
                 else if (step === this.WEEK) {
                     step = this.DAY;
+                    startBlock += this.DAY;
                 }
             }
             isCli && this.progressBar.update(startBlock);
