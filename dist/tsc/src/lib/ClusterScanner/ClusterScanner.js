@@ -99,7 +99,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 'Data': clusterSnapshot.join(',')
             },
             cluster: {
-                validatorCount: clusterSnapshot[0],
+                validatorCount: Number(clusterSnapshot[0]),
                 networkFeeIndex: clusterSnapshot[1].toString(),
                 index: clusterSnapshot[2].toString(),
                 active: clusterSnapshot[3],
