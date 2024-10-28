@@ -6,6 +6,18 @@ const ethers_1 = require("ethers");
 const cli_progress_1 = tslib_1.__importDefault(require("cli-progress"));
 const contract_provider_1 = require("../contract.provider");
 const BaseScanner_1 = require("../BaseScanner");
+// transactionHash: '0x6de9cf4ef292be3b9dc12c8b97772588eb0c7bdcbe1e16fbd1db342bb071c75a',
+//   blockHash: '0xc4ce5279c035b0a99da0571f977af589b1d783651da3774708e892796ce840c0',
+//   blockNumber: 2624456,
+//   removed: false,
+//   address: '0x0d33801785340072C452b994496B19f196b7eE15',
+//   data: '0x000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000002,
+// topics: [
+//   '0x48a3ea0796746043948f6341d17ff8200937b99262a0b48c2663b951ed7114e5',
+//   '0x0000000000000000000000007934278428d237239addb0bab910b639ec758b98'
+// ],
+//   index: 130,
+//   transactionIndex: 53
 class ClusterScanner extends BaseScanner_1.BaseScanner {
     async run(operatorIds, isCli) {
         const validOperatorIds = Array.isArray(operatorIds) && this._isValidOperatorIds(operatorIds.length);
@@ -41,7 +53,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         let step = this.MONTH;
         let clusterSnapshot;
         let biggestBlockNumber = 0;
-        let transactionIndex = 0;
+        // let transactionIndex = 0;
         const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
         isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
         const operatorIdsAsString = JSON.stringify(operatorIds);
@@ -56,24 +68,35 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 };
                 const logs = await provider.getLogs(filter);
                 logs
-                    .map(log => ({
+                    .map((log) => ({
                     event: contract.interface.parseLog(log),
                     blockNumber: log.blockNumber,
-                    transactionIndex: log.transactionIndex
+                    transactionIndex: log.transactionIndex,
+                    logIndex: log.index
                 }))
-                    .filter((parsedEvent) => parsedEvent.event && eventsList.includes(parsedEvent.event.name))
-                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString && parsedLog.event?.args.some((value) => ethers_1.ethers.isAddress(value) && ethers_1.ethers.getAddress(value) === this.params.ownerAddress))
+                    .filter((parsedEvent) => parsedEvent.event
+                    && eventsList.includes(parsedEvent.event.name)
+                    && ethers_1.ethers.isAddress(parsedEvent.event?.args[0])
+                    && ethers_1.ethers.getAddress(parsedEvent.event?.args[0]) === this.params.ownerAddress)
+                    // .forEach((parsedEvent) => console.log(parsedEvent.event && Object.keys(parsedEvent.event.args)))
+                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString)
+                    // && parsedLog.event?.args.some((value: any) => ethers.isAddress(value) && ethers.getAddress(value) === this.params.ownerAddress))
                     .sort((a, b) => a.blockNumber - b.blockNumber)
+                    .sort((a, b) => a.transactionIndex - b.transactionIndex)
+                    .sort((a, b) => a.logIndex - b.logIndex)
                     .forEach((parsedLog) => {
-                    if (parsedLog.blockNumber >= biggestBlockNumber) {
-                        const previousBlockNumber = biggestBlockNumber;
-                        biggestBlockNumber = parsedLog.blockNumber;
-                        if (previousBlockNumber === parsedLog.blockNumber && parsedLog.transactionIndex < transactionIndex) {
-                            return;
-                        }
-                        transactionIndex = parsedLog.transactionIndex;
-                        clusterSnapshot = parsedLog.event.args.cluster;
-                    }
+                    //   if (parsedLog.blockNumber >= biggestBlockNumber) {
+                    //     const previousBlockNumber = biggestBlockNumber;
+                    //     biggestBlockNumber = parsedLog.blockNumber;
+                    //
+                    //     if (previousBlockNumber === parsedLog.blockNumber && parsedLog.transactionIndex < transactionIndex) {
+                    //       return;
+                    //     }
+                    //
+                    //     transactionIndex = parsedLog.transactionIndex;
+                    clusterSnapshot = parsedLog.event.args.cluster;
+                    return;
+                    //   }
                 });
             }
             catch (e) {
