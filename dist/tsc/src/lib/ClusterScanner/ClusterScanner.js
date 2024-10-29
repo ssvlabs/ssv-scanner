@@ -64,40 +64,34 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 const filter = {
                     address: contractAddress,
                     fromBlock: endBlock,
-                    toBlock: startBlock
+                    toBlock: startBlock,
+                    topics: [null, ethers_1.ethers.zeroPadValue(this.params.ownerAddress, 32)],
                 };
                 const logs = await provider.getLogs(filter);
-                logs
+                const res = logs
                     .map((log) => ({
                     event: contract.interface.parseLog(log),
                     blockNumber: log.blockNumber,
                     transactionIndex: log.transactionIndex,
                     logIndex: log.index
-                }))
-                    .filter((parsedEvent) => parsedEvent.event
-                    && eventsList.includes(parsedEvent.event.name)
-                    && ethers_1.ethers.isAddress(parsedEvent.event?.args[0])
-                    && ethers_1.ethers.getAddress(parsedEvent.event?.args[0]) === this.params.ownerAddress)
-                    // .forEach((parsedEvent) => console.log(parsedEvent.event && Object.keys(parsedEvent.event.args)))
-                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString)
-                    // && parsedLog.event?.args.some((value: any) => ethers.isAddress(value) && ethers.getAddress(value) === this.params.ownerAddress))
-                    .sort((a, b) => a.blockNumber - b.blockNumber)
-                    .sort((a, b) => a.transactionIndex - b.transactionIndex)
-                    .sort((a, b) => a.logIndex - b.logIndex)
-                    .forEach((parsedLog) => {
-                    //   if (parsedLog.blockNumber >= biggestBlockNumber) {
-                    //     const previousBlockNumber = biggestBlockNumber;
-                    //     biggestBlockNumber = parsedLog.blockNumber;
-                    //
-                    //     if (previousBlockNumber === parsedLog.blockNumber && parsedLog.transactionIndex < transactionIndex) {
-                    //       return;
-                    //     }
-                    //
-                    //     transactionIndex = parsedLog.transactionIndex;
-                    clusterSnapshot = parsedLog.event.args.cluster;
-                    return;
-                    //   }
+                }));
+                res
+                    .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
+                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString);
+                res.sort((a, b) => {
+                    if (b.blockNumber === a.blockNumber) {
+                        if (b.transactionIndex === a.transactionIndex) {
+                            return b.logIndex - a.logIndex;
+                        }
+                        else {
+                            return b.transactionIndex - a.transactionIndex;
+                        }
+                    }
+                    else {
+                        return b.blockNumber - a.blockNumber;
+                    }
                 });
+                clusterSnapshot = res[0].event?.args.cluster;
             }
             catch (e) {
                 if (step === this.MONTH) {
