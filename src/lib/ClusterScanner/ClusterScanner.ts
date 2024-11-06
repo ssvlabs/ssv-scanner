@@ -62,9 +62,8 @@ export class ClusterScanner extends BaseScanner {
     let step = this.MONTH;
     let clusterSnapshot;
     let biggestBlockNumber = 0;
-    // let transactionIndex = 0;
 
-    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
 
     isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
 
@@ -81,7 +80,7 @@ export class ClusterScanner extends BaseScanner {
         };
         const logs = await provider.getLogs(filter);
 
-        const res = logs
+        let res = logs
           .map((log: ethers.Log) => ({
             event: contract.interface.parseLog(log),
             blockNumber: log.blockNumber,
@@ -89,11 +88,12 @@ export class ClusterScanner extends BaseScanner {
             logIndex: log.index
           }));
 
-        res
+        res = res
           .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
           .filter((parsedLog) =>
-            JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId)))) === operatorIdsAsString)
-        res.sort((a, b) => {
+            JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId)))) === operatorIdsAsString
+          )
+          .sort((a, b) => {
             if (b.blockNumber === a.blockNumber) {
               if (b.transactionIndex === a.transactionIndex) {
                 return b.logIndex - a.logIndex;

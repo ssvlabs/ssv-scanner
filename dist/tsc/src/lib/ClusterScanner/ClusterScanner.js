@@ -53,8 +53,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         let step = this.MONTH;
         let clusterSnapshot;
         let biggestBlockNumber = 0;
-        // let transactionIndex = 0;
-        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
         isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
         const operatorIdsAsString = JSON.stringify(operatorIds);
         let prevProgressBarState = genesisBlock;
@@ -68,17 +67,17 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                     topics: [null, ethers_1.ethers.zeroPadValue(this.params.ownerAddress, 32)],
                 };
                 const logs = await provider.getLogs(filter);
-                const res = logs
+                let res = logs
                     .map((log) => ({
                     event: contract.interface.parseLog(log),
                     blockNumber: log.blockNumber,
                     transactionIndex: log.transactionIndex,
                     logIndex: log.index
                 }));
-                res
+                res = res
                     .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
-                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString);
-                res.sort((a, b) => {
+                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString)
+                    .sort((a, b) => {
                     if (b.blockNumber === a.blockNumber) {
                         if (b.transactionIndex === a.transactionIndex) {
                             return b.logIndex - a.logIndex;
