@@ -9,19 +9,6 @@ export interface IData {
   cluster: any;
 }
 
-// transactionHash: '0x6de9cf4ef292be3b9dc12c8b97772588eb0c7bdcbe1e16fbd1db342bb071c75a',
-//   blockHash: '0xc4ce5279c035b0a99da0571f977af589b1d783651da3774708e892796ce840c0',
-//   blockNumber: 2624456,
-//   removed: false,
-//   address: '0x0d33801785340072C452b994496B19f196b7eE15',
-//   data: '0x000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000002,
-// topics: [
-//   '0x48a3ea0796746043948f6341d17ff8200937b99262a0b48c2663b951ed7114e5',
-//   '0x0000000000000000000000007934278428d237239addb0bab910b639ec758b98'
-// ],
-//   index: 130,
-//   transactionIndex: 53
-
 export class ClusterScanner extends BaseScanner {
   async run(operatorIds: number[], isCli?: boolean): Promise<IData> {
     const validOperatorIds = Array.isArray(operatorIds) && this._isValidOperatorIds(operatorIds.length);
