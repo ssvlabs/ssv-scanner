@@ -41,8 +41,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         let step = this.MONTH;
         let clusterSnapshot;
         let biggestBlockNumber = 0;
-        let transactionIndex = 0;
-        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
         isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
         const operatorIdsAsString = JSON.stringify(operatorIds);
         let prevProgressBarState = genesisBlock;
@@ -52,29 +51,34 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 const filter = {
                     address: contractAddress,
                     fromBlock: endBlock,
-                    toBlock: startBlock
+                    toBlock: startBlock,
+                    topics: [null, ethers_1.ethers.zeroPadValue(this.params.ownerAddress, 32)],
                 };
                 const logs = await provider.getLogs(filter);
-                logs
-                    .map(log => ({
+                const parsedLogs = logs
+                    .map((log) => ({
                     event: contract.interface.parseLog(log),
                     blockNumber: log.blockNumber,
-                    transactionIndex: log.transactionIndex
-                }))
-                    .filter((parsedEvent) => parsedEvent.event && eventsList.includes(parsedEvent.event.name))
-                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString && parsedLog.event?.args.some((value) => ethers_1.ethers.isAddress(value) && ethers_1.ethers.getAddress(value) === this.params.ownerAddress))
-                    .sort((a, b) => a.blockNumber - b.blockNumber)
-                    .forEach((parsedLog) => {
-                    if (parsedLog.blockNumber >= biggestBlockNumber) {
-                        const previousBlockNumber = biggestBlockNumber;
-                        biggestBlockNumber = parsedLog.blockNumber;
-                        if (previousBlockNumber === parsedLog.blockNumber && parsedLog.transactionIndex < transactionIndex) {
-                            return;
+                    transactionIndex: log.transactionIndex,
+                    logIndex: log.index
+                }));
+                const res = parsedLogs
+                    .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
+                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString)
+                    .sort((a, b) => {
+                    if (b.blockNumber === a.blockNumber) {
+                        if (b.transactionIndex === a.transactionIndex) {
+                            return b.logIndex - a.logIndex;
                         }
-                        transactionIndex = parsedLog.transactionIndex;
-                        clusterSnapshot = parsedLog.event.args.cluster;
+                        else {
+                            return b.transactionIndex - a.transactionIndex;
+                        }
+                    }
+                    else {
+                        return b.blockNumber - a.blockNumber;
                     }
                 });
+                clusterSnapshot = res[0].event?.args.cluster;
             }
             catch (e) {
                 if (step === this.MONTH) {

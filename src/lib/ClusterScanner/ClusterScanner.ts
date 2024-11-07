@@ -49,9 +49,8 @@ export class ClusterScanner extends BaseScanner {
     let step = this.MONTH;
     let clusterSnapshot;
     let biggestBlockNumber = 0;
-    let transactionIndex = 0;
 
-    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
 
     isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
 
@@ -63,32 +62,36 @@ export class ClusterScanner extends BaseScanner {
         const filter = {
           address: contractAddress,
           fromBlock: endBlock,
-          toBlock: startBlock
+          toBlock: startBlock,
+          topics: [null, ethers.zeroPadValue(this.params.ownerAddress, 32)],
         };
         const logs = await provider.getLogs(filter);
 
-        logs
-          .map(log => ({
+        const parsedLogs = logs
+          .map((log: ethers.Log) => ({
             event: contract.interface.parseLog(log),
             blockNumber: log.blockNumber,
-            transactionIndex: log.transactionIndex
-          }))
-          .filter((parsedEvent) => parsedEvent.event && eventsList.includes(parsedEvent.event.name))
-          .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId)))) === operatorIdsAsString && parsedLog.event?.args.some((value: any) => ethers.isAddress(value) && ethers.getAddress(value) === this.params.ownerAddress))
-          .sort((a, b) => a.blockNumber - b.blockNumber)
-          .forEach((parsedLog: any) => {
-            if (parsedLog.blockNumber >= biggestBlockNumber) {
-              const previousBlockNumber = biggestBlockNumber;
-              biggestBlockNumber = parsedLog.blockNumber;
+            transactionIndex: log.transactionIndex,
+            logIndex: log.index
+          }));
 
-              if (previousBlockNumber === parsedLog.blockNumber && parsedLog.transactionIndex < transactionIndex) {
-                return;
+        const res = parsedLogs
+          .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
+          .filter((parsedLog) =>
+            JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId)))) === operatorIdsAsString
+          )
+          .sort((a, b) => {
+            if (b.blockNumber === a.blockNumber) {
+              if (b.transactionIndex === a.transactionIndex) {
+                return b.logIndex - a.logIndex;
+              } else {
+                return b.transactionIndex - a.transactionIndex
               }
-
-              transactionIndex = parsedLog.transactionIndex;
-              clusterSnapshot = parsedLog.event.args.cluster;
+            } else {
+              return b.blockNumber - a.blockNumber;
             }
           });
+        clusterSnapshot = res[0].event?.args.cluster;
       } catch (e) {
         if (step === this.MONTH) {
           step = this.WEEK;
