@@ -67,7 +67,7 @@ export class ClusterScanner extends BaseScanner {
         };
         const logs = await provider.getLogs(filter);
 
-        let res = logs
+        const parsedLogs = logs
           .map((log: ethers.Log) => ({
             event: contract.interface.parseLog(log),
             blockNumber: log.blockNumber,
@@ -75,7 +75,7 @@ export class ClusterScanner extends BaseScanner {
             logIndex: log.index
           }));
 
-        res = res
+        const res = parsedLogs
           .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
           .filter((parsedLog) =>
             JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId)))) === operatorIdsAsString
