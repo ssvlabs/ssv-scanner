@@ -7,6 +7,7 @@ const process = tslib_1.__importStar(require("process"));
 const argparse_1 = require("argparse");
 const NonceCommand_1 = require("./commands/NonceCommand");
 const ClusterCommand_1 = require("./commands/ClusterCommand");
+const OperatorCommand_1 = require("./commands/OperatorCommand");
 const FigletMessage = async (message) => {
     return new Promise(resolve => {
         (0, figlet_1.default)(message, (error, output) => {
@@ -33,13 +34,16 @@ async function main() {
     const subParsers = rootParser.add_subparsers({ title: 'commands', dest: 'command' });
     const clusterCommand = new ClusterCommand_1.ClusterCommand();
     const nonceCommand = new NonceCommand_1.NonceCommand();
+    const operatorCommand = new OperatorCommand_1.OperatorCommand();
     const clusterCommandParser = subParsers.add_parser(clusterCommand.name, { add_help: true });
     const nonceCommandParser = subParsers.add_parser(nonceCommand.name, { add_help: true });
+    const operatorCommandParser = subParsers.add_parser(operatorCommand.name, { add_help: true });
     let command = '';
     const args = process.argv.slice(2); // Skip node and script name
     if (args[1] && args[1].includes('--help')) {
         clusterCommand.setArguments(clusterCommandParser);
         nonceCommand.setArguments(nonceCommandParser);
+        operatorCommand.setArguments(operatorCommandParser);
         rootParser.parse_args(); // Print help and exit
     }
     else {
@@ -47,6 +51,7 @@ async function main() {
         command = args[0]['command'];
         clusterCommand.setArguments(clusterCommandParser);
         nonceCommand.setArguments(nonceCommandParser);
+        operatorCommand.setArguments(operatorCommandParser);
     }
     switch (command) {
         case clusterCommand.name:
@@ -54,6 +59,9 @@ async function main() {
             break;
         case nonceCommand.name:
             await nonceCommand.run(nonceCommand.parse(args));
+            break;
+        case operatorCommand.name:
+            await operatorCommand.run(operatorCommand.parse(args));
             break;
         default:
             console.error('Command not found');
