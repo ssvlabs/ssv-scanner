@@ -71,9 +71,6 @@ export class OperatorScanner extends BaseScanner {
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
-
-    // Define index before the loop
-    let index = 0;
     
     // Initialize entries array outside the loop
     let entries = new Array(logs.length);
@@ -85,9 +82,9 @@ export class OperatorScanner extends BaseScanner {
     }
 
     // Loop through logs to extract the pubkey
-    for (const log of logs) {
-      const parsedLog = iface.parseLog(log);
-      const decodedLog = iface.decodeEventLog('OperatorAdded', log.data);
+    for (let index = 0; index < logs.length; index++) {
+      const parsedLog = iface.parseLog(logs[index]);
+      const decodedLog = iface.decodeEventLog('OperatorAdded', logs[index].data);
       if (parsedLog === undefined || parsedLog === null) {
         throw new Error('Could not parse the log');
       }
@@ -109,13 +106,12 @@ export class OperatorScanner extends BaseScanner {
           id: index + 1,
           pubkey: result
         };
-        index++;
       }
       // Write to file once after the loop
       fs.writeFileSync(filePath, JSON.stringify(entries, null, 2));
       
       isCli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
-      return dirPath;
+      return filePath;
     }
 }
 
