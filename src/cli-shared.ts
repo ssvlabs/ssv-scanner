@@ -4,6 +4,7 @@ import * as process from 'process';
 import { ArgumentParser } from 'argparse';
 import { NonceCommand } from './commands/NonceCommand';
 import { ClusterCommand } from './commands/ClusterCommand';
+import { OperatorCommand } from './commands/OperatorCommand';
 
 const FigletMessage = async (message: string) => {
   return new Promise(resolve => {
@@ -34,8 +35,10 @@ export default async function main(): Promise<any> {
 
   const clusterCommand = new ClusterCommand();
   const nonceCommand = new NonceCommand();
+  const operatorCommand = new OperatorCommand();
   const clusterCommandParser = subParsers.add_parser(clusterCommand.name, { add_help: true })
   const nonceCommandParser = subParsers.add_parser(nonceCommand.name, { add_help: true });
+  const operatorCommandParser = subParsers.add_parser(operatorCommand.name, { add_help: true });
 
   let command = '';
   const args = process.argv.slice(2); // Skip node and script name
@@ -43,12 +46,14 @@ export default async function main(): Promise<any> {
   if (args[1] && args[1].includes('--help')) {
     clusterCommand.setArguments(clusterCommandParser);
     nonceCommand.setArguments(nonceCommandParser);
+    operatorCommand.setArguments(operatorCommandParser);
     rootParser.parse_args(); // Print help and exit
   } else {
     let args = rootParser.parse_known_args();
     command = args[0]['command'];
     clusterCommand.setArguments(clusterCommandParser);
     nonceCommand.setArguments(nonceCommandParser);
+    operatorCommand.setArguments(operatorCommandParser);
   }
 
   switch (command) {
@@ -57,6 +62,9 @@ export default async function main(): Promise<any> {
       break;
     case nonceCommand.name:
       await nonceCommand.run(nonceCommand.parse(args));
+      break;
+    case operatorCommand.name:
+      await operatorCommand.run(operatorCommand.parse(args));
       break;
     default:
       console.error('Command not found');

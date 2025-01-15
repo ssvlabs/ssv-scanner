@@ -81,6 +81,22 @@ yarn cli nonce -n .... -nw mainnet -oa .....
 
 **Output:**  Current owner nonce.
 
+### Example operator scanner
+
+**Input parameters:**
+
+- node-url (n) = The ETH1 node url
+- network (nw) = The network (mainnet, holesky, holesky_stage)
+- owner-address (oa) = Owner address
+- output-path (o) = A full output path (not mandatory, default output path is .../ssv-scanner/dist/tsc/src/data/)
+
+Example of running cluster scanner in the CLI:
+```bash
+yarn cli operator -n .... -nw mainnet -oa ..... -o ...
+```
+**Output:**  File output path (json with all pubkeys from the net)
+
+
 ## Integration in your projects
 
 ### Node Project
