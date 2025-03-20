@@ -10,7 +10,7 @@ class OperatorCommand extends Command_1.Command {
     setArguments(parser) {
         parser.add_argument('-nw', '--network', {
             help: 'The network',
-            choices: ['mainnet', 'holesky'],
+            choices: ['mainnet', 'holesky', 'hoodi'],
             required: true,
             dest: 'network',
         });
@@ -35,7 +35,7 @@ class OperatorCommand extends Command_1.Command {
             const operatorScanner = new OperatorScanner_1.OperatorScanner(args);
             const outputPath = args.outputPath;
             const result = await operatorScanner.run(outputPath, true);
-            console.log(result);
+            console.log(`\nOperator data has been saved to:\n ${result}`);
         }
         catch (e) {
             console.error('\x1b[31m', e.message);
