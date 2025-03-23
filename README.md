@@ -76,8 +76,8 @@ yarn cli cluster -n .... -nw mainnet -oa ..... -oids 1,2,3,4
 
 Example of running nonce scanner in the CLI:
 ```bash
-yarn cli nonce -n .... -nw mainnet -oa .....
-```
+
+yarn cli nonce -n https://the_eth_node -nw network -oa 0xeth_address
 
 **Output:**  Current owner nonce.
 
@@ -92,7 +92,8 @@ yarn cli nonce -n .... -nw mainnet -oa .....
 
 Example of running cluster scanner in the CLI:
 ```bash
-yarn cli operator -n .... -nw mainnet -oa ..... -o ...
+
+yarn cli operator -n https://the_eth_node -nw network -oa 0xeth_address -oid 1,2,3....
 ```
 **Output:**  File output path (json with all pubkeys from the net)
 
