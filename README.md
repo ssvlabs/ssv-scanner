@@ -54,7 +54,7 @@ yarn cli --help
 **Input parameters:**
 
 - node-url (n) = The ETH1 node url
-- network (nw) = The network (mainnet, holesky)
+- network (nw) = The network (mainnet, holesky, hoodi)
 - owner-address (oa) = Cluster owner address
 - operator-ids (oids) = Comma separated operator ids list
 
@@ -70,14 +70,14 @@ yarn cli cluster -n .... -nw mainnet -oa ..... -oids 1,2,3,4
 **Input parameters:**
 
 - node-url (n) = The ETH1 node url
-- network (nw) = The network (mainnet, holesky)
+- network (nw) = The network (mainnet, holesky, hoodi)
 - owner-address (oa) = Cluster owner address
 
 
 Example of running nonce scanner in the CLI:
 ```bash
-yarn cli nonce -n .... -nw mainnet -oa .....
-```
+
+yarn cli nonce -n https://the_eth_node -nw network -oa 0xeth_address
 
 **Output:**  Current owner nonce.
 
@@ -86,13 +86,14 @@ yarn cli nonce -n .... -nw mainnet -oa .....
 **Input parameters:**
 
 - node-url (n) = The ETH1 node url
-- network (nw) = The network (mainnet, holesky, holesky_stage)
+- network (nw) = The network (mainnet, holesky, holesky_stage, hoodi, hoodi_stage)
 - owner-address (oa) = Owner address
 - output-path (o) = A full output path (not mandatory, default output path is .../ssv-scanner/dist/tsc/src/data/)
 
 Example of running cluster scanner in the CLI:
 ```bash
-yarn cli operator -n .... -nw mainnet -oa ..... -o ...
+
+yarn cli operator -n https://the_eth_node -nw network -oa 0xeth_address -oids 1,2,3....
 ```
 **Output:**  File output path (json with all pubkeys from the net)
 
