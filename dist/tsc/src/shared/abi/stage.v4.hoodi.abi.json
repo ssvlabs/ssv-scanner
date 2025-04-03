@@ -1,7 +1,7 @@
 {
-  "contractAddress": "0x868C2789045d7ffC144635Da7D8cC0a974C58f89",
-  "tokenAddress": "0x9F5d4Ec84fC4785788aB44F9de973cF34F7A038e",
-  "genesisBlock": 1004,
+  "contractAddress": "0x0aaace4e8affc47c6834171c88d342a4abd8f105",
+  "tokenAddress": "0x746c33ccc28b1363c35c09badaf41b2ffa7e6d56",
+  "genesisBlock": 101653,
   "abi": [
     {
       "inputs": [],
