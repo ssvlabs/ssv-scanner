@@ -4,7 +4,7 @@ export const ContractVersion = {
   HOLESKY_STAGE: 'stage:v4.holesky',
   HOODI: 'prod:v4.hoodi',
   HOODI_STAGE: 'stage:v4.hoodi',
-  LOCAL_TESTNET: 'local:v4.local_testnet',
+  LOCAL_TESTNET: 'local:v4.testnet',
 } as const;
 
 const getContractSettings = (networkAndEnv: string) => {
