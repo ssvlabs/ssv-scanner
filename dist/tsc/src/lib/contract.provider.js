@@ -3,8 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getContractSettings = exports.ContractVersion = void 0;
 exports.ContractVersion = {
     MAINNET: 'prod:v4.mainnet',
-    HOLESKY: 'prod:v4.holesky',
-    HOLESKY_STAGE: 'stage:v4.holesky',
     HOODI: 'prod:v4.hoodi',
     HOODI_STAGE: 'stage:v4.hoodi',
     LOCAL_TESTNET: 'local:v4.testnet',
@@ -20,26 +18,13 @@ const getContractSettings = (networkAndEnv) => {
         console.error(`Failed to load JSON data from ${contractEnv}.${contractNetwork}.abi.json`, err);
         throw err;
     }
-    let jsonViewsData;
-    try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        jsonViewsData = require(`../shared/abi/${contractEnv}.${contractNetwork}.abi.json`);
-    }
-    catch (err) {
-        console.error(`Failed to load JSON data from ${contractEnv}.${contractNetwork}.abi.json`, err);
-        throw err;
-    }
     // Check if required properties exist in jsonData
     if (!jsonCoreData.contractAddress ||
         !jsonCoreData.abi ||
-        !jsonCoreData.genesisBlock) {
+        (!jsonCoreData.genesisBlock && jsonCoreData.genesisBlock !== 0)) {
         throw new Error(`Missing core data in JSON for ${contractEnv}.${contractNetwork}`);
     }
-    // Check if required properties exist in jsonData
-    if (!jsonViewsData.contractAddress || !jsonViewsData.abi) {
-        throw new Error(`Missing views data in JSON for ${contractEnv}.${contractNetwork}`);
-    }
-    return { contractAddress: jsonViewsData.contractAddress, abi: jsonViewsData.abi, genesisBlock: jsonViewsData.genesisBlock };
+    return { contractAddress: jsonCoreData.contractAddress, abi: jsonCoreData.abi, genesisBlock: jsonCoreData.genesisBlock };
 };
 exports.getContractSettings = getContractSettings;
 //# sourceMappingURL=contract.provider.js.map

@@ -10,7 +10,7 @@ class ClusterCommand extends Command_1.Command {
     setArguments(parser) {
         parser.add_argument('-nw', '--network', {
             help: 'The network',
-            choices: ['mainnet', 'holesky', 'hoodi', 'local_testnet',
+            choices: ['mainnet', 'hoodi', 'local_testnet'],
             required: true,
             dest: 'network',
         });

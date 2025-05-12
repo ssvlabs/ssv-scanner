@@ -1,6 +1,6 @@
 {
     "name": "ssv-scanner",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Tool for retrieving events data (cluster snapshots and owner nonce) from the SSV network contract.",
     "author": "SSV.Network",
     "repository": "https://github.com/bloxapp/ssv-scanner",
@@ -48,7 +48,8 @@
         "argparse": "^2.0.1",
         "cli-progress": "^3.11.2",
         "ethers": "^6.13.2",
-        "figlet": "^1.5.2"
+        "figlet": "^1.5.2",
+        "yarn": "^1.22.22"
     },
     "licenses": [
         {
