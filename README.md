@@ -86,7 +86,7 @@ yarn cli nonce -n https://the_eth_node -nw network -oa 0xeth_address
 **Input parameters:**
 
 - node-url (n) = The ETH1 node url
-- network (nw) = The network (mainnet, hoodi, hoodi_stage)
+- network (nw) = The network (mainnet, hoodi, hoodi_stage, local_testnet)
 - owner-address (oa) = Owner address
 - output-path (o) = A full output path (not mandatory, default output path is .../ssv-scanner/dist/tsc/src/data/)
 
