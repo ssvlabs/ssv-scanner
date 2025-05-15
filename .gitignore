@@ -7,3 +7,4 @@ coverage
 *.log
 /data/*
 bin/**/*
+src/data/operator-pubkeys-local_testnet.json
