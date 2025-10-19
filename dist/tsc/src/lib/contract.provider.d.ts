@@ -3,6 +3,7 @@ export declare const ContractVersion: {
     readonly HOODI: "prod:v4.hoodi";
     readonly HOODI_STAGE: "stage:v4.hoodi";
     readonly LOCAL_TESTNET: "local:v4.testnet";
+    readonly FUSAKA_STAGE: "stage:v4.fusaka";
 };
 declare const getContractSettings: (networkAndEnv: string) => {
     contractAddress: any;
