@@ -10,7 +10,7 @@ export class OperatorCommand extends Command {
   setArguments(parser: ArgumentParser): void {
     parser.add_argument('-nw', '--network', {
       help: 'The network',
-      choices: ['mainnet', 'hoodi', 'hoodi_stage', 'local_testnet'],
+      choices: ['mainnet', 'hoodi', 'hoodi_stage', 'local_testnet', 'fusaka'],
       required: true,
       dest: 'network',
     });
