@@ -3,6 +3,7 @@ export const ContractVersion = {
   HOODI: 'prod:v4.hoodi',
   HOODI_STAGE: 'stage:v4.hoodi',
   LOCAL_TESTNET: 'local:v4.testnet',
+  FUSAKA_STAGE: 'stage:v4.fusaka',
 } as const;
 
 const getContractSettings = (networkAndEnv: string) => {
