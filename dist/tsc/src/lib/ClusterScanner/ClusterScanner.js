@@ -41,7 +41,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         let step = this.MONTH;
         let clusterSnapshot;
         let biggestBlockNumber = 0;
-        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterBalanceUpdated'];
+        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterBalanceUpdated', 'ClusterMigratedToETH'];
         isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
         const operatorIdsAsString = JSON.stringify(operatorIds);
         let prevProgressBarState = genesisBlock;

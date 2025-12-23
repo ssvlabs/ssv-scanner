@@ -10,7 +10,7 @@ export class NonceCommand extends Command {
   setArguments(parser: ArgumentParser): void {
     parser.add_argument('-nw', '--network', {
       help: 'The network',
-      choices: ['mainnet', 'hoodi', 'local_testnet', 'fusaka'],
+      choices: ['mainnet', 'hoodi_prod', 'hoodi_stage', 'hoodi_custom', 'local_testnet', 'fusaka'],
       required: true,
       dest: 'network',
     });

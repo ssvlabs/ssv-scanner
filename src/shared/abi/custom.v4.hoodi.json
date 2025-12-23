@@ -1,7 +1,7 @@
 {
-  "contractAddress": "0xad45A78180961079BFaeEe349704F411dfF947C6",
-  "tokenAddress": "0x116522F4D00b42Efce0aA77f7ddAd1d27705F36b",
-  "genesisBlock": 396240,
+  "contractAddress": "0x0aEBCB50A5cB3d4318a5061ecb8E373029DDD87a",
+  "tokenAddress": "0x746c33ccc28b1363c35c09badaf41b2ffa7e6d56",
+  "genesisBlock": 1875829,
   "abi": [
     {
       "inputs": [],
@@ -370,70 +370,6 @@
         }
       ],
       "name": "ClusterDeposited",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint64[]",
-          "name": "operatorIds",
-          "type": "uint64[]"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint64",
-          "name": "blockNum",
-          "type": "uint64"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint32",
-          "name": "effectiveBalance",
-          "type": "uint32"
-        },
-        {
-          "components": [
-            {
-              "internalType": "uint32",
-              "name": "validatorCount",
-              "type": "uint32"
-            },
-            {
-              "internalType": "uint64",
-              "name": "networkFeeIndex",
-              "type": "uint64"
-            },
-            {
-              "internalType": "uint64",
-              "name": "index",
-              "type": "uint64"
-            },
-            {
-              "internalType": "bool",
-              "name": "active",
-              "type": "bool"
-            },
-            {
-              "internalType": "uint256",
-              "name": "balance",
-              "type": "uint256"
-            }
-          ],
-          "indexed": false,
-          "internalType": "struct ISSVNetworkCore.Cluster",
-          "name": "cluster",
-          "type": "tuple"
-        }
-      ],
-      "name": "ClusterBalanceUpdated",
       "type": "event"
     },
     {
