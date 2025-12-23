@@ -41,7 +41,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         let step = this.MONTH;
         let clusterSnapshot;
         let biggestBlockNumber = 0;
-        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterBalanceUpdated'];
         isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
         const operatorIdsAsString = JSON.stringify(operatorIds);
         let prevProgressBarState = genesisBlock;
@@ -56,15 +56,29 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 };
                 const logs = await provider.getLogs(filter);
                 const parsedLogs = logs
-                    .map((log) => ({
-                    event: contract.interface.parseLog(log),
-                    blockNumber: log.blockNumber,
-                    transactionIndex: log.transactionIndex,
-                    logIndex: log.index
-                }));
+                    .map((log) => {
+                    try {
+                        return {
+                            event: contract.interface.parseLog(log),
+                            blockNumber: log.blockNumber,
+                            transactionIndex: log.transactionIndex,
+                            logIndex: log.index
+                        };
+                    }
+                    catch (e) {
+                        return null;
+                    }
+                })
+                    .filter((parsedLog) => parsedLog !== null);
                 const res = parsedLogs
                     .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
-                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString)
+                    .filter((parsedLog) => {
+                    const operatorIds = parsedLog.event?.args?.operatorIds;
+                    if (!operatorIds || !Array.isArray(operatorIds)) {
+                        return false;
+                    }
+                    return JSON.stringify(operatorIds.map((bigIntOpId) => Number(bigIntOpId))) === operatorIdsAsString;
+                })
                     .sort((a, b) => {
                     if (b.blockNumber === a.blockNumber) {
                         if (b.transactionIndex === a.transactionIndex) {

@@ -50,7 +50,7 @@ export class ClusterScanner extends BaseScanner {
     let clusterSnapshot;
     let biggestBlockNumber = 0;
 
-    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterBalanceUpdated', 'ClusterMigratedToETH'];
 
     isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
 
@@ -68,18 +68,29 @@ export class ClusterScanner extends BaseScanner {
         const logs = await provider.getLogs(filter);
 
         const parsedLogs = logs
-          .map((log: ethers.Log) => ({
-            event: contract.interface.parseLog(log),
-            blockNumber: log.blockNumber,
-            transactionIndex: log.transactionIndex,
-            logIndex: log.index
-          }));
+          .map((log: ethers.Log) => {
+            try {
+              return {
+                event: contract.interface.parseLog(log),
+                blockNumber: log.blockNumber,
+                transactionIndex: log.transactionIndex,
+                logIndex: log.index
+              };
+            } catch (e) {
+              return null;
+            }
+          })
+          .filter((parsedLog): parsedLog is NonNullable<typeof parsedLog> => parsedLog !== null);
 
         const res = parsedLogs
           .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
-          .filter((parsedLog) =>
-            JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId)))) === operatorIdsAsString
-          )
+          .filter((parsedLog) => {
+            const operatorIds = parsedLog.event?.args?.operatorIds;
+            if (!operatorIds || !Array.isArray(operatorIds)) {
+              return false;
+            }
+            return JSON.stringify(operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId))) === operatorIdsAsString;
+          })
           .sort((a, b) => {
             if (b.blockNumber === a.blockNumber) {
               if (b.transactionIndex === a.transactionIndex) {
