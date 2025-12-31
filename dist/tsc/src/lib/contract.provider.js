@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getContractSettings = exports.ContractVersion = void 0;
 exports.ContractVersion = {
     MAINNET: 'prod:v4.mainnet',
-    HOODI_PROD: 'prod:v4.hoodi',
+    HOODI: 'prod:v4.hoodi',
     HOODI_STAGE: 'stage:v4.hoodi',
     HOODI_CUSTOM: 'custom:v4.hoodi',
     LOCAL_TESTNET: 'local:v4.testnet',
