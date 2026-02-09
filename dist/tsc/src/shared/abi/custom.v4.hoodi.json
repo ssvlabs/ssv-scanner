@@ -1,8 +1,9 @@
 {
-  "contractAddress": "0x2f03a6aDf575ADae6117cC2ecFFdf9a4E67E3EF3",
+  "contractAddress": "0xdf4f52446DA26D29f10acafb8F1C4F658A0C92b5",
   "tokenAddress": "0x746c33ccc28b1363c35c09badaf41b2ffa7e6d56",
-  "genesisBlock": 1875829,
-  "abi": [
+  "genesisBlock": 1930402,
+  "abi": 
+  [
     {
       "inputs": [],
       "stateMutability": "nonpayable",
@@ -84,16 +85,6 @@
     {
       "inputs": [],
       "name": "ClusterNotLiquidatable",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "CooldownActive",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "CooldownNotFinished",
       "type": "error"
     },
     {
@@ -244,6 +235,11 @@
         }
       ],
       "name": "InvalidWhitelistingContract",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MaxRequestsAmountReached",
       "type": "error"
     },
     {
@@ -954,7 +950,33 @@
           "type": "uint64"
         }
       ],
+      "name": "LiquidationThresholdPeriodSSVUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "value",
+          "type": "uint64"
+        }
+      ],
       "name": "LiquidationThresholdPeriodUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "MinimumLiquidationCollateralSSVUpdated",
       "type": "event"
     },
     {
@@ -1025,6 +1047,25 @@
         }
       ],
       "name": "NetworkFeeUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "oldFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "NetworkFeeUpdatedSSV",
       "type": "event"
     },
     {
@@ -1150,6 +1191,19 @@
         }
       ],
       "name": "OperatorFeeIncreaseLimitUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "maxFee",
+          "type": "uint64"
+        }
+      ],
+      "name": "OperatorMaximumFeeSSVUpdated",
       "type": "event"
     },
     {
@@ -1711,6 +1765,18 @@
           "internalType": "uint256",
           "name": "quorum",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "oracleId",
+          "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "oracle",
+          "type": "address"
         }
       ],
       "name": "WeightedRootProposed",
@@ -2687,34 +2753,6 @@
     {
       "inputs": [
         {
-          "internalType": "uint64",
-          "name": "firstStartEpoch",
-          "type": "uint64"
-        },
-        {
-          "internalType": "uint64",
-          "name": "firstInterval",
-          "type": "uint64"
-        },
-        {
-          "internalType": "uint64",
-          "name": "secondStartEpoch",
-          "type": "uint64"
-        },
-        {
-          "internalType": "uint64",
-          "name": "secondInterval",
-          "type": "uint64"
-        }
-      ],
-      "name": "setOracleTimingConfig",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "uint16",
           "name": "quorum",
           "type": "uint16"
@@ -2879,11 +2917,37 @@
       "inputs": [
         {
           "internalType": "uint64",
+          "name": "blocks",
+          "type": "uint64"
+        }
+      ],
+      "name": "updateLiquidationThresholdPeriodSSV",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
           "name": "maxFee",
           "type": "uint64"
         }
       ],
       "name": "updateMaximumOperatorFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "maxFee",
+          "type": "uint64"
+        }
+      ],
+      "name": "updateMaximumOperatorFeeSSV",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -2897,6 +2961,19 @@
         }
       ],
       "name": "updateMinimumLiquidationCollateral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateMinimumLiquidationCollateralSSV",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
