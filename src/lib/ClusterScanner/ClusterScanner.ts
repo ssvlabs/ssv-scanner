@@ -29,6 +29,13 @@ export class ClusterScanner extends BaseScanner {
 
   private async _getClusterSnapshot(operatorIds: number[], isCli?: boolean): Promise<IData> {
     const { contractAddress, abi, genesisBlock } = getContractSettings(this.params.network);
+    if (isCli) {
+      console.log(`\nUsing contract address: ${contractAddress}`);
+      console.log(`Genesis block: ${genesisBlock}`);
+      console.log(`Network: ${this.params.network}`);
+      console.log(`Owner address: ${this.params.ownerAddress}`);
+      console.log(`Operator IDs: ${operatorIds.join(',')}`);
+    }
     let latestBlockNumber;
     const provider = new ethers.JsonRpcProvider(this.params.nodeUrl);
 
