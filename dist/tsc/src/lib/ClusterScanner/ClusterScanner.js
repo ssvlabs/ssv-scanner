@@ -40,7 +40,8 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         }
         const contract = new ethers_1.ethers.Contract(contractAddress, abi, provider);
         try {
-            await contract.owner();
+            // Verify contract is valid by calling getVersion() instead of owner()
+            await contract.getVersion();
         }
         catch (err) {
             throw new Error('Could not find any cluster snapshot from the provided contract address: ' + err);
@@ -99,7 +100,9 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                         return b.blockNumber - a.blockNumber;
                     }
                 });
-                clusterSnapshot = res[0].event?.args.cluster;
+                if (res.length > 0) {
+                    clusterSnapshot = res[0].event?.args.cluster;
+                }
             }
             catch (e) {
                 if (step === this.MONTH) {
@@ -109,6 +112,17 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 else if (step === this.WEEK) {
                     step = this.DAY;
                     startBlock += this.DAY;
+                }
+                else if (step === this.DAY) {
+                    step = this.SECONDS;
+                    startBlock += this.SECONDS;
+                }
+                else if (step === this.SECONDS) {
+                    step = this.MILISECONDS;
+                    startBlock += this.MILISECONDS;
+                }
+                else {
+                    throw new Error(e);
                 }
             }
             prevProgressBarState += step;
