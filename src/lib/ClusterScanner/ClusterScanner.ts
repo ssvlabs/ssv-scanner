@@ -101,7 +101,14 @@ export class ClusterScanner extends BaseScanner {
             }
           });
         console.log("[scanner] events for this owner+operatorIds (res length): " + (res?.length ?? 0));
+        // If ClusterBalanceUpdated is 0 here, scanner's Network ABI may not include that event → parseLog drops those logs. Add ClusterBalanceUpdated to the ABI.
         if (res?.length > 0) {
+          const nameCounts = res.reduce((acc: Record<string, number>, r) => {
+            const n = r?.event?.name ?? 'unknown';
+            acc[n] = (acc[n] || 0) + 1;
+            return acc;
+          }, {});
+          console.log("[scanner] event name counts in res:", JSON.stringify(nameCounts));
           console.log("[scanner] first res event: name=" + (res[0]?.event?.name ?? "?") + ", block=" + (res[0]?.blockNumber ?? "?"));
           if (res.length > 1) {
             console.log("[scanner] last res event: name=" + (res[res.length - 1]?.event?.name ?? "?") + ", block=" + (res[res.length - 1]?.blockNumber ?? "?"));
