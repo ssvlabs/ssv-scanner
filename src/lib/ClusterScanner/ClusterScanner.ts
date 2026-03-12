@@ -4,6 +4,9 @@ import { getContractSettings } from '../contract.provider';
 
 import { BaseScanner } from '../BaseScanner';
 
+/** Cluster struct from contract (tuple): validatorCount, networkFeeIndex, index, active, balance */
+const CLUSTER_KEYS = ['validatorCount', 'networkFeeIndex', 'index', 'active', 'balance'] as const;
+
 export interface IData {
   payload: any;
   cluster: any;
@@ -50,7 +53,7 @@ export class ClusterScanner extends BaseScanner {
     let clusterSnapshot;
     let biggestBlockNumber = 0;
 
-    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterMigratedToETH'];
 
     isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
 
@@ -91,34 +94,39 @@ export class ClusterScanner extends BaseScanner {
               return b.blockNumber - a.blockNumber;
             }
           });
-        clusterSnapshot = res[0].event?.args.cluster;
+        const latest = res[0];
+        if (latest?.event?.args) {
+          clusterSnapshot = clusterSnapshotToArray(latest.event.args.cluster);
+        }
       } catch (e) {
         if (step === this.MONTH) {
           step = this.WEEK;
           startBlock += this.WEEK;
         } else if (step === this.WEEK) {
           step = this.DAY;
-          startBlock += this.DAY;        }
+          startBlock += this.DAY;
+        }
       }
       prevProgressBarState += step;
       isCli && this.progressBar.update(prevProgressBarState, latestBlockNumber);
     }
 
     isCli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
-    clusterSnapshot = clusterSnapshot || ['0', '0', '0', true, '0'];
+    const cluster = clusterSnapshot ?? ['0', '0', '0', true, '0'];
+    const clusterArr = clusterSnapshotToArray(cluster);
     return {
       payload: {
         'Owner': this.params.ownerAddress,
         'Operators': operatorIds.join(','),
         'Block': biggestBlockNumber || latestBlockNumber,
-        'Data': clusterSnapshot.join(',')
+        'Data': clusterArr.join(',')
       },
       cluster: {
-        validatorCount: Number(clusterSnapshot[0]),
-        networkFeeIndex: clusterSnapshot[1].toString(),
-        index: clusterSnapshot[2].toString(),
-        active: clusterSnapshot[3],
-        balance: clusterSnapshot[4].toString()
+        validatorCount: Number(clusterArr[0]),
+        networkFeeIndex: clusterArr[1].toString(),
+        index: clusterArr[2].toString(),
+        active: clusterArr[3],
+        balance: clusterArr[4].toString()
       }
     };
   }
@@ -126,4 +134,36 @@ export class ClusterScanner extends BaseScanner {
   private _isValidOperatorIds(operatorsLength: number) {
     return !(operatorsLength < 4 || operatorsLength > 13 || operatorsLength % 3 != 1);
   }
+}
+
+/**
+* Normalize the cluster from event args into a fixed 5-element array.
+* We need to support two types of cluster structs because ethers can decode the same Solidity struct either way:
+* - Tuple/array: cluster[0]..cluster[4] (older ABIs or some decode paths).
+* - Named object: cluster.validatorCount, cluster.networkFeeIndex, etc. (newer ABIs / ethers v6).
+* Reading by both index and key keeps the scanner correct regardless of which form we get,
+* and we normalize bigints to strings so the rest of the code always sees a consistent type.
+*/
+function clusterSnapshotToArray(cluster: unknown): [string | number, string, string, boolean, string] {
+  // If the cluster is not an object, return a default value
+  if (!cluster || typeof cluster !== 'object') {
+    return ['0', '0', '0', true, '0'];
+  }
+  // Cast the cluster to a record or array
+  const c = cluster as Record<string, unknown> | unknown[];
+  // Get the value at the given index or key
+  const get = (i: number, key: string) => {
+    const v = Array.isArray(c) ? c[i] : (c as Record<string, unknown>)[key];
+    if (v === undefined || v === null) return i === 3 ? true : (i === 0 ? 0 : '0');
+    if (i === 3) return Boolean(v);
+    return typeof v === 'bigint' ? v.toString() : String(v);
+  };
+  // Return the normalized array
+  return [
+    get(0, CLUSTER_KEYS[0]) as string | number,
+    get(1, CLUSTER_KEYS[1]) as string,
+    get(2, CLUSTER_KEYS[2]) as string,
+    get(3, CLUSTER_KEYS[3]) as boolean,
+    get(4, CLUSTER_KEYS[4]) as string,
+  ];
 }
