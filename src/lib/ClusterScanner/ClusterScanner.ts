@@ -50,8 +50,9 @@ export class ClusterScanner extends BaseScanner {
     }
 
     let step = this.MONTH;
-    let clusterSnapshot;
-    let biggestBlockNumber = 0;
+    let clusterSnapshot: [string | number, string, string, boolean, string] | undefined;
+    /** Block number of the event we used for the cluster. Must be reported so executor/contract can correlate; reporting chain head here would cause IncorrectClusterVersion when cluster is from an older event. */
+    let eventBlockNumber: number | undefined;
 
     const eventsList = ['ClusterBalanceUpdated', 'ClusterDeposited', 'ClusterLiquidated', 'ClusterMigratedToETH', 'ClusterReactivated', 'ClusterWithdrawn', 'ValidatorAdded', 'ValidatorRemoved'];
 
@@ -122,8 +123,10 @@ export class ClusterScanner extends BaseScanner {
           console.log("Normalized cluster" + clusterSnapshotToArray(latest.event.args.cluster));
           console.log("[scanner] cluster source: FROM_EVENT");
           clusterSnapshot = clusterSnapshotToArray(latest.event.args.cluster);
+          eventBlockNumber = Number(latest.blockNumber);
         }
       } catch (e) {
+        // Retry same startBlock with a smaller range (so we don't skip the most recent period).
         if (step === this.MONTH) {
           step = this.WEEK;
           startBlock += this.WEEK;
@@ -143,13 +146,15 @@ export class ClusterScanner extends BaseScanner {
       console.log("[scanner] fallback cluster tuple: " + JSON.stringify(cluster));
     }
     const clusterArr = clusterSnapshotToArray(cluster);
+    const payloadBlock = eventBlockNumber ?? latestBlockNumber;
     console.log("[scanner] final cluster source: " + (clusterSnapshot != null ? "FROM_EVENT" : "FALLBACK"));
     console.log("[scanner] final cluster tuple: " + JSON.stringify(clusterArr));
+    console.log("[scanner] payload Block (event block or chain head): " + payloadBlock + (eventBlockNumber != null ? " (from event)" : " (chain head, no event)"));
     return {
       payload: {
         'Owner': this.params.ownerAddress,
         'Operators': operatorIds.join(','),
-        'Block': biggestBlockNumber || latestBlockNumber,
+        'Block': payloadBlock,
         'Data': clusterArr.join(',')
       },
       cluster: {
