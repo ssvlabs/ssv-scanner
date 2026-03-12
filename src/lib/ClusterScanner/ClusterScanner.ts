@@ -69,6 +69,7 @@ export class ClusterScanner extends BaseScanner {
           topics: [null, ethers.zeroPadValue(this.params.ownerAddress, 32)],
         };
         const logs = await provider.getLogs(filter);
+        console.log("[scanner] getLogs count: " + (logs?.length ?? 0));
 
         const parsedLogs = logs
           .map((log: ethers.Log) => ({
@@ -77,6 +78,11 @@ export class ClusterScanner extends BaseScanner {
             transactionIndex: log.transactionIndex,
             logIndex: log.index
           }));
+        console.log("[scanner] parsed events count: " + (parsedLogs?.length ?? 0));
+        if (parsedLogs?.length > 0) {
+          const first = parsedLogs[0];
+          console.log("[scanner] first parsed event: name=" + (first?.event?.name ?? "?") + ", block=" + (first?.blockNumber ?? "?"));
+        }
 
         const res = parsedLogs
           .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
@@ -94,10 +100,19 @@ export class ClusterScanner extends BaseScanner {
               return b.blockNumber - a.blockNumber;
             }
           });
+        console.log("[scanner] events for this owner+operatorIds (res length): " + (res?.length ?? 0));
+        if (res?.length > 0) {
+          console.log("[scanner] first res event: name=" + (res[0]?.event?.name ?? "?") + ", block=" + (res[0]?.blockNumber ?? "?"));
+          if (res.length > 1) {
+            console.log("[scanner] last res event: name=" + (res[res.length - 1]?.event?.name ?? "?") + ", block=" + (res[res.length - 1]?.blockNumber ?? "?"));
+          }
+        }
         const latest = res[0];
+        console.log("[scanner] latest present: " + !!latest + ", has event.args: " + !!(latest?.event?.args));
         if (latest?.event?.args) {
           console.log("Latest cluster" + latest.event.args.cluster);
           console.log("Normalized cluster" + clusterSnapshotToArray(latest.event.args.cluster));
+          console.log("[scanner] cluster source: FROM_EVENT");
           clusterSnapshot = clusterSnapshotToArray(latest.event.args.cluster);
         }
       } catch (e) {
@@ -115,7 +130,13 @@ export class ClusterScanner extends BaseScanner {
 
     isCli && this.progressBar.update(latestBlockNumber, latestBlockNumber);
     const cluster = clusterSnapshot ?? ['0', '0', '0', true, '0'];
+    if (clusterSnapshot == null) {
+      console.log("[scanner] cluster source: FALLBACK (no matching event)");
+      console.log("[scanner] fallback cluster tuple: " + JSON.stringify(cluster));
+    }
     const clusterArr = clusterSnapshotToArray(cluster);
+    console.log("[scanner] final cluster source: " + (clusterSnapshot != null ? "FROM_EVENT" : "FALLBACK"));
+    console.log("[scanner] final cluster tuple: " + JSON.stringify(clusterArr));
     return {
       payload: {
         'Owner': this.params.ownerAddress,
