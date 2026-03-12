@@ -53,7 +53,7 @@ export class ClusterScanner extends BaseScanner {
     let clusterSnapshot;
     let biggestBlockNumber = 0;
 
-    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterMigratedToETH'];
+    const eventsList = ['ClusterBalanceUpdated', 'ClusterDeposited', 'ClusterLiquidated', 'ClusterMigratedToETH', 'ClusterReactivated', 'ClusterWithdrawn', 'ValidatorAdded', 'ValidatorRemoved'];
 
     isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
 
@@ -108,6 +108,7 @@ export class ClusterScanner extends BaseScanner {
           }
         }
         const latest = res[0];
+        console.log("[scanner] latest event: name=" + (latest?.event?.name ?? "?") + ", block=" + (latest?.blockNumber ?? "?"));
         console.log("[scanner] latest present: " + !!latest + ", has event.args: " + !!(latest?.event?.args));
         if (latest?.event?.args) {
           console.log("Latest cluster" + latest.event.args.cluster);
