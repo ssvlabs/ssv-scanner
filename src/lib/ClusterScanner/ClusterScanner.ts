@@ -96,6 +96,8 @@ export class ClusterScanner extends BaseScanner {
           });
         const latest = res[0];
         if (latest?.event?.args) {
+          console.log("Latest cluster" + latest.event.args.cluster);
+          console.log("Normalized cluster" + clusterSnapshotToArray(latest.event.args.cluster));
           clusterSnapshot = clusterSnapshotToArray(latest.event.args.cluster);
         }
       } catch (e) {
