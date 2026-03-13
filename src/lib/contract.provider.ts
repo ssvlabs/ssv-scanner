@@ -9,14 +9,19 @@ export const ContractVersion = {
 const getContractSettings = (networkAndEnv: string) => {
   const [contractEnv, contractNetwork] = ContractVersion[networkAndEnv.toUpperCase() as keyof typeof ContractVersion].split(':');
 
+  const configFileName = `${contractEnv}.${contractNetwork}.abi.json`;
+
   let jsonCoreData;
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    jsonCoreData = require(`../shared/abi/${contractEnv}.${contractNetwork}.abi.json`);
+    jsonCoreData = require(`../shared/abi/${configFileName}`);
   } catch (err) {
-    console.error(`Failed to load JSON data from ${contractEnv}.${contractNetwork}.abi.json`, err);
+    console.error(`Failed to load JSON data from ${configFileName}`, err);
     throw err;
   }
+
+  // One-time log per invocation so we know which config was used indeed.
+  console.log(`\nContract config file in use: ${configFileName}\n`);
 
   // Check if required properties exist in jsonData
   if (

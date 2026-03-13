@@ -50,7 +50,7 @@ export class ClusterScanner extends BaseScanner {
     let clusterSnapshot;
     let biggestBlockNumber = 0;
 
-    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterBalanceUpdated', 'ClusterMigratedToETH'];
 
     isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
 
