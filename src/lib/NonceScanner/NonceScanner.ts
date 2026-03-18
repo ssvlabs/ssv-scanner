@@ -33,7 +33,8 @@ export class NonceScanner extends BaseScanner {
     }
 
     try {
-      await contract.owner();
+      // Verify contract is valid by calling getVersion() instead of owner()
+      await contract.getVersion();
     } catch (err) {
       throw new Error('Could not find any cluster snapshot from the provided contract address.');
     }

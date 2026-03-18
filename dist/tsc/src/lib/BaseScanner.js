@@ -7,6 +7,8 @@ class BaseScanner {
         this.DAY = 5400;
         this.WEEK = this.DAY * 7;
         this.MONTH = this.DAY * 30;
+        this.SECONDS = 1000;
+        this.MILISECONDS = 250;
         if (!scannerParams.nodeUrl) {
             throw Error('ETH1 node is required');
         }

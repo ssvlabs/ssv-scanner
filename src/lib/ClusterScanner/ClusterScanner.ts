@@ -29,6 +29,13 @@ export class ClusterScanner extends BaseScanner {
 
   private async _getClusterSnapshot(operatorIds: number[], isCli?: boolean): Promise<IData> {
     const { contractAddress, abi, genesisBlock } = getContractSettings(this.params.network);
+    if (isCli) {
+      console.log(`\nUsing contract address: ${contractAddress}`);
+      console.log(`Genesis block: ${genesisBlock}`);
+      console.log(`Network: ${this.params.network}`);
+      console.log(`Owner address: ${this.params.ownerAddress}`);
+      console.log(`Operator IDs: ${operatorIds.join(',')}`);
+    }
     let latestBlockNumber;
     const provider = new ethers.JsonRpcProvider(this.params.nodeUrl);
 
@@ -41,7 +48,8 @@ export class ClusterScanner extends BaseScanner {
     const contract = new ethers.Contract(contractAddress, abi, provider);
 
     try {
-      await contract.owner();
+      // Verify contract is valid by calling getVersion() instead of owner()
+      await contract.getVersion();
     } catch (err) {
       throw new Error('Could not find any cluster snapshot from the provided contract address: ' + err);
     }
@@ -50,7 +58,7 @@ export class ClusterScanner extends BaseScanner {
     let clusterSnapshot;
     let biggestBlockNumber = 0;
 
-    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+    const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterBalanceUpdated', 'ClusterMigratedToETH'];
 
     isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
 
@@ -68,18 +76,29 @@ export class ClusterScanner extends BaseScanner {
         const logs = await provider.getLogs(filter);
 
         const parsedLogs = logs
-          .map((log: ethers.Log) => ({
-            event: contract.interface.parseLog(log),
-            blockNumber: log.blockNumber,
-            transactionIndex: log.transactionIndex,
-            logIndex: log.index
-          }));
+          .map((log: ethers.Log) => {
+            try {
+              return {
+                event: contract.interface.parseLog(log),
+                blockNumber: log.blockNumber,
+                transactionIndex: log.transactionIndex,
+                logIndex: log.index
+              };
+            } catch (e) {
+              return null;
+            }
+          })
+          .filter((parsedLog): parsedLog is NonNullable<typeof parsedLog> => parsedLog !== null);
 
         const res = parsedLogs
           .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
-          .filter((parsedLog) =>
-            JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId)))) === operatorIdsAsString
-          )
+          .filter((parsedLog) => {
+            const operatorIds = parsedLog.event?.args?.operatorIds;
+            if (!operatorIds || !Array.isArray(operatorIds)) {
+              return false;
+            }
+            return JSON.stringify(operatorIds.map((bigIntOpId: bigint) => Number(bigIntOpId))) === operatorIdsAsString;
+          })
           .sort((a, b) => {
             if (b.blockNumber === a.blockNumber) {
               if (b.transactionIndex === a.transactionIndex) {
@@ -91,14 +110,25 @@ export class ClusterScanner extends BaseScanner {
               return b.blockNumber - a.blockNumber;
             }
           });
-        clusterSnapshot = res[0].event?.args.cluster;
+        if (res.length > 0) {
+          clusterSnapshot = res[0].event?.args.cluster;
+        }
       } catch (e) {
         if (step === this.MONTH) {
           step = this.WEEK;
           startBlock += this.WEEK;
         } else if (step === this.WEEK) {
           step = this.DAY;
-          startBlock += this.DAY;        }
+          startBlock += this.DAY;
+        } else if (step === this.DAY) {
+          step = this.SECONDS;
+          startBlock += this.SECONDS;
+        } else if (step === this.SECONDS) {
+          step = this.MILISECONDS;
+          startBlock += this.MILISECONDS;
+        } else {
+          throw new Error(e as any);
+        }
       }
       prevProgressBarState += step;
       isCli && this.progressBar.update(prevProgressBarState, latestBlockNumber);

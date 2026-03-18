@@ -23,6 +23,13 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
     }
     async _getClusterSnapshot(operatorIds, isCli) {
         const { contractAddress, abi, genesisBlock } = (0, contract_provider_1.getContractSettings)(this.params.network);
+        if (isCli) {
+            console.log(`\nUsing contract address: ${contractAddress}`);
+            console.log(`Genesis block: ${genesisBlock}`);
+            console.log(`Network: ${this.params.network}`);
+            console.log(`Owner address: ${this.params.ownerAddress}`);
+            console.log(`Operator IDs: ${operatorIds.join(',')}`);
+        }
         let latestBlockNumber;
         const provider = new ethers_1.ethers.JsonRpcProvider(this.params.nodeUrl);
         try {
@@ -33,7 +40,8 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         }
         const contract = new ethers_1.ethers.Contract(contractAddress, abi, provider);
         try {
-            await contract.owner();
+            // Verify contract is valid by calling getVersion() instead of owner()
+            await contract.getVersion();
         }
         catch (err) {
             throw new Error('Could not find any cluster snapshot from the provided contract address: ' + err);
@@ -41,7 +49,7 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
         let step = this.MONTH;
         let clusterSnapshot;
         let biggestBlockNumber = 0;
-        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterWithdrawn'];
+        const eventsList = ['ClusterDeposited', 'ClusterWithdrawn', 'ClusterReactivated', 'ValidatorRemoved', 'ValidatorAdded', 'ClusterLiquidated', 'ClusterBalanceUpdated', 'ClusterMigratedToETH'];
         isCli && this.progressBar.start(latestBlockNumber, genesisBlock);
         const operatorIdsAsString = JSON.stringify(operatorIds);
         let prevProgressBarState = genesisBlock;
@@ -56,15 +64,29 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 };
                 const logs = await provider.getLogs(filter);
                 const parsedLogs = logs
-                    .map((log) => ({
-                    event: contract.interface.parseLog(log),
-                    blockNumber: log.blockNumber,
-                    transactionIndex: log.transactionIndex,
-                    logIndex: log.index
-                }));
+                    .map((log) => {
+                    try {
+                        return {
+                            event: contract.interface.parseLog(log),
+                            blockNumber: log.blockNumber,
+                            transactionIndex: log.transactionIndex,
+                            logIndex: log.index
+                        };
+                    }
+                    catch (e) {
+                        return null;
+                    }
+                })
+                    .filter((parsedLog) => parsedLog !== null);
                 const res = parsedLogs
                     .filter((parsedLog) => parsedLog.event && eventsList.includes(parsedLog.event.name))
-                    .filter((parsedLog) => JSON.stringify((parsedLog.event?.args.operatorIds.map((bigIntOpId) => Number(bigIntOpId)))) === operatorIdsAsString)
+                    .filter((parsedLog) => {
+                    const operatorIds = parsedLog.event?.args?.operatorIds;
+                    if (!operatorIds || !Array.isArray(operatorIds)) {
+                        return false;
+                    }
+                    return JSON.stringify(operatorIds.map((bigIntOpId) => Number(bigIntOpId))) === operatorIdsAsString;
+                })
                     .sort((a, b) => {
                     if (b.blockNumber === a.blockNumber) {
                         if (b.transactionIndex === a.transactionIndex) {
@@ -78,7 +100,9 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                         return b.blockNumber - a.blockNumber;
                     }
                 });
-                clusterSnapshot = res[0].event?.args.cluster;
+                if (res.length > 0) {
+                    clusterSnapshot = res[0].event?.args.cluster;
+                }
             }
             catch (e) {
                 if (step === this.MONTH) {
@@ -88,6 +112,17 @@ class ClusterScanner extends BaseScanner_1.BaseScanner {
                 else if (step === this.WEEK) {
                     step = this.DAY;
                     startBlock += this.DAY;
+                }
+                else if (step === this.DAY) {
+                    step = this.SECONDS;
+                    startBlock += this.SECONDS;
+                }
+                else if (step === this.SECONDS) {
+                    step = this.MILISECONDS;
+                    startBlock += this.MILISECONDS;
+                }
+                else {
+                    throw new Error(e);
                 }
             }
             prevProgressBarState += step;
