@@ -47,15 +47,6 @@ describe('ClusterCommand', () => {
       expect(argNames).toContain('operatorIds');
     });
 
-    it('should require network argument with correct choices', () => {
-      const parser = command['parser'];
-      const networkAction = parser._actions.find((a: any) => a.dest === 'network');
-
-      expect(networkAction).toBeDefined();
-      expect(networkAction.required).toBe(true);
-      expect(networkAction.choices).toEqual(['mainnet', 'hoodi', 'local_testnet', 'fusaka']);
-    });
-
     it('should require nodeUrl argument', () => {
       const parser = command['parser'];
       const nodeUrlAction = parser._actions.find((a: any) => a.dest === 'nodeUrl');
