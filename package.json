@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@types/figlet": "^1.5.4",
-    "argparse": "^2.0.1",
+    "argparse": "^3.0.0",
     "cli-progress": "^3.11.2",
     "ethers": "^6.13.2",
     "figlet": "^1.5.2",
